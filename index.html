@@ -11,7 +11,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAYAAADn9STfAAAACXBIWXMAAAsTAAALEwEAmpwYAAABMElEQVR4nO3TMQEAAAjDsM0/6WnBDySg7mS6ByYBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgG8Bv88AAfD/X6MAAAAASUVORK5CYII=">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAYAAADn9STfAAAACXBIWXMAAAsTAAALEwEAmpwYAAABMElEQVR4nO3TMQEAAAjDsM0/6WnBDySg7mS6ByYBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgG8Bv88AAfD/X6MAAAAASUVORK5CYII=">
     
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -218,6 +217,13 @@
                     h += `<div class="cat-${i.category} glow-${i.priority} p-6 rounded-r-2xl shadow-lg ${i.status === 'done' ? 'opacity-40 grayscale' : ''}"><div class="flex justify-between items-center gap-4"><div class="flex-1"><h3 class="font-black text-slate-100 text-lg uppercase tracking-tight flex items-center gap-2"><span contenteditable="true" onblur="updateField(${i.id}, 'title', this.innerText)" class="editable">${i.title}</span><span class="text-[12px] text-slate-600 font-mono italic ml-auto">${i.release}</span></h3><div class="flex gap-4 mt-3 items-center"><span class="priority-${i.priority} text-[11px] uppercase font-black tracking-widest p-1">${PRIORITY_LABELS[i.priority]}</span><span class="text-[12px] text-slate-500 font-bold uppercase tracking-wider">${i.genre} • <span contenteditable="true" onblur="updateField(${i.id}, 'runtime', this.innerText)" class="editable">${i.runtime}</span></span></div></div><div class="text-right flex items-center gap-4"><span contenteditable="true" onblur="updateField(${i.id}, 'score', this.innerText)" class="font-mono font-black text-3xl tracking-tighter ${i.score >= 90 ? 'score-elite' : 'text-sky-500'}">${i.score || '0'}</span><div class="flex flex-col items-end gap-3"><select onchange="const x = items.find(z=>z.id===${i.id}); x.status=this.value; save();" class="${sC} bg-black/40 text-[11px] font-black uppercase p-3 rounded-xl border cursor-pointer"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in progress" ${i.status==='in progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="if(confirm('Expunge?')) { items=items.filter(z=>z.id!==${i.id}); save(); }" class="text-slate-800 hover:text-red-500 text-[10px] font-bold uppercase p-1">Expunge</button></div></div></div></div>`;
                 });
                 container.innerHTML += h + `</div></section>`;
+            });
+        }
+
+        // SERVICE WORKER REGISTRATION (The "Install" trigger)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
             });
         }
 
