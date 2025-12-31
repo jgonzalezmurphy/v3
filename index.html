@@ -63,18 +63,17 @@
         }
 
         .play-btn {
-            width: 36px;
-            height: 36px;
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
+            width: 38px;
+            height: 38px;
+            background: #ff0000;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,0,0,0.3);
         }
-        .play-btn:hover { background: #ef4444; transform: scale(1.1); }
+        .play-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
 
         .priority-1 { color: #f87171; font-weight: 900; } 
         .priority-2 { color: #fbbf24; font-weight: 800; } 
@@ -87,34 +86,11 @@
 
         .glass { background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         
-        #video-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .video-container { width: 95%; max-width: 900px; aspect-ratio: 16/9; position: relative; }
-
         @keyframes pulse-glow { 0%, 100% { text-shadow: 0 0 5px rgba(56, 189, 248, 0.2); color: #fff; } 50% { text-shadow: 0 0 30px rgba(56, 189, 248, 1); color: #38bdf8; } }
         .syncing #vault-logo { animation: pulse-glow 1s ease-in-out infinite; }
     </style>
 </head>
 <body>
-    <div id="video-overlay">
-        <div class="video-container">
-            <iframe id="trailer-frame" class="w-full h-full rounded-xl border border-white/20" src="" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
-        </div>
-        <div class="mt-8 flex gap-4">
-            <button onclick="toggleFullscreen()" class="bg-white/10 hover:bg-white/20 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/20">Fullscreen</button>
-            <button onclick="closeTrailer()" class="bg-red-500/20 hover:bg-red-500/40 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest text-red-400 border border-red-500/40">Close</button>
-        </div>
-    </div>
-
     <div class="max-w-3xl mx-auto pb-32" id="app-root">
         <header class="mb-6 flex justify-between items-end">
             <div>
@@ -163,28 +139,6 @@
         let showAll = false;
         let collapsedSections = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
         let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
-
-        function openTrailer(title, cat) {
-            const overlay = document.getElementById('video-overlay');
-            const frame = document.getElementById('trailer-frame');
-            const query = encodeURIComponent(`${title} ${cat} official trailer`);
-            // Use standard embed link - listType=search is deprecated and unreliable
-            frame.src = `https://www.youtube.com/embed?listType=search&list=${query}&autoplay=1`;
-            overlay.style.display = 'flex';
-        }
-
-        function closeTrailer() {
-            const overlay = document.getElementById('video-overlay');
-            const frame = document.getElementById('trailer-frame');
-            frame.src = '';
-            overlay.style.display = 'none';
-        }
-
-        function toggleFullscreen() {
-            const frame = document.getElementById('trailer-frame');
-            if (frame.requestFullscreen) frame.requestFullscreen();
-            else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
-        }
 
         function updateSyncStatus(text) { 
             const el = document.getElementById('syncStatus');
@@ -257,16 +211,15 @@
                         item.title = g.name;
                         item.score = g.metacritic || (g.rating ? Math.round(g.rating * 20) : 0);
                         item.release = g.released?.split('-')[0] || "---";
-                        item.genre = g.genres?.[0]?.name || "Game";
+                        item.genre = g.genres?.[0]?.name || "Vidya";
                         item.runtime = g.playtime ? g.playtime + "h" : "N/A";
                     } else {
-                        // Engine 2: OpenCritic Backup
-                        const oc = await fetch(`https://api.opencritic.com/api/game/search?criteria=${encodeURIComponent(item.title)}`);
-                        const ocD = await oc.json();
-                        if (ocD && ocD[0]) {
-                            item.title = ocD[0].name;
-                            item.score = ocD[0].score > 0 ? Math.round(ocD[0].score) : 0;
-                            item.genre = "Vidya";
+                        // Engine 2: Wikipedia Fallback (CORS Friendly)
+                        const wiki = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title.replace(/ /g, '_'))}`);
+                        const wD = await wiki.json();
+                        if (wD.title && !wD.title.includes("Not found")) {
+                            item.title = wD.title;
+                            item.genre = "Game";
                         }
                     }
                 } else {
@@ -282,7 +235,7 @@
                         item.runtime = item.category === 'movie' ? (detail.runtime + "m") : (detail.number_of_episodes + " eps");
                     }
                 }
-            } catch (e) { console.error("Fetch Error:", e); }
+            } catch (e) { console.error("Metadata Failure:", e); }
             document.getElementById('app-root').classList.remove('syncing');
             render();
         }
@@ -326,6 +279,8 @@
                 
                 list.forEach(i => {
                     const sC = i.status === 'in progress' ? 'status-progress' : (i.status === 'done' ? 'status-done' : 'status-todo');
+                    const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent(i.title)}+${i.category}+official+trailer`;
+                    
                     h += `
                     <div class="media-card card-${i.category} priority-bg-${i.priority} p-4 shadow-lg ${i.status === 'done' ? 'opacity-30' : ''}">
                         <div class="category-watermark">${key === 'vidya' ? 'VIDYA' : key}</div>
@@ -349,9 +304,9 @@
                                     ${i.genre} • ${i.release} • <span contenteditable="true" onblur="updateField(${i.id}, 'runtime', this.innerText)" class="editable">${i.runtime}</span>
                                 </span>
                             </div>
-                            <button onclick="openTrailer('${i.title.replace(/'/g, "\\'")}', '${i.category}')" class="play-btn">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                            </button>
+                            <a href="${ytSearch}" target="_blank" class="play-btn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                            </a>
                         </div>
                         <div class="flex gap-2 pt-3 border-t border-white/10 relative z-10">
                             <select onchange="const x = items.find(z=>z.id===${i.id}); x.status=this.value; save();" class="${sC} text-[10px] font-black uppercase px-3 py-2 rounded-lg border flex-1 text-center">
