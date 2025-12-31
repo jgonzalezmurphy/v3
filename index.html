@@ -77,15 +77,6 @@
         
         @keyframes pulse-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .syncing #vault-logo { animation: pulse-glow 1s ease-in-out infinite; }
-
-        .priority-label {
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 2px;
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -205,7 +196,7 @@
         function updateField(id, field, value) {
             const item = items.find(i => i.id === id);
             if (item) { 
-                item[field] = (field === 'score') ? parseInt(value) || 0 : value; 
+                item[field] = (field === 'score' || field === 'priority') ? parseInt(value) || 0 : value; 
                 save(); 
             }
         }
@@ -214,7 +205,6 @@
             const container = document.getElementById('tables-container');
             container.innerHTML = '';
             const labels = { movie: '🎥 CINEMA', tv: '📺 SERIES', vidya: '🎮 GAMES' };
-            const pMap = { 1: "Immediate", 2: "High", 3: "Medium", 4: "Low" };
 
             Object.entries(labels).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key);
@@ -225,28 +215,33 @@
                 let h = `<section class="px-1"><h2 class="text-[10px] font-black tracking-widest text-white mb-4 uppercase opacity-50">${label}</h2><div class="space-y-4">`;
                 
                 list.forEach(i => {
-                    // ACTUAL "I'm Feeling Lucky" Redirect
                     const luckyUrl = `https://www.google.com/search?q=${encodeURIComponent(i.title + " " + key + " official trailer site:youtube.com")}&btnI=1`;
                     
                     h += `
                     <div class="media-card card-${key} priority-bg-${i.priority} p-4">
                         <div class="category-watermark">${key.toUpperCase()}</div>
-                        <div class="relative z-10 mb-1">
-                             <span class="priority-label opacity-70">P${i.priority} • ${pMap[i.priority]}</span>
-                             <div class="flex justify-between items-start">
-                                <h3 class="font-black text-white text-base uppercase">
-                                    <span contenteditable="true" onblur="updateField(${i.id}, 'title', this.innerText)">${i.title}</span>
-                                </h3>
-                                <span class="font-mono font-black text-xl text-sky-400" contenteditable="true" onblur="updateField(${i.id}, 'score', this.innerText)">${i.score || '0'}</span>
-                             </div>
+                        
+                        <div class="flex justify-between items-start mb-1 relative z-10">
+                            <h3 class="font-black text-white text-base uppercase">
+                                <span contenteditable="true" onblur="updateField(${i.id}, 'title', this.innerText)">${i.title}</span>
+                            </h3>
+                            <span class="font-mono font-black text-xl text-sky-400" contenteditable="true" onblur="updateField(${i.id}, 'score', this.innerText)">${i.score || '0'}</span>
                         </div>
+
                         <div class="flex items-center justify-between mb-4 relative z-10">
                             <span class="text-[10px] text-white/60 font-bold uppercase">${i.genre} • ${i.release}</span>
                             <a href="${luckyUrl}" target="_blank" class="play-btn">
                                 <svg width="12" height="12" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                             </a>
                         </div>
+
                         <div class="flex gap-2 relative z-10">
+                            <select onchange="updateField(${i.id}, 'priority', this.value)" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 w-24">
+                                <option value="1" ${i.priority===1?'selected':''}>Imm</option>
+                                <option value="2" ${i.priority===2?'selected':''}>High</option>
+                                <option value="3" ${i.priority===3?'selected':''}>Med</option>
+                                <option value="4" ${i.priority===4?'selected':''}>Low</option>
+                            </select>
                             <select onchange="updateField(${i.id}, 'status', this.value)" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1">
                                 <option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option>
                                 <option value="in progress" ${i.status==='in progress'?'selected':''}>In Progress</option>
