@@ -81,7 +81,7 @@
             </div>
         </div>
 
-        <div id="tables-container" class="space-y-20"></div>
+        <div id="tables-container" class="space-y-12"></div>
     </div>
 
     <script>
@@ -89,6 +89,7 @@
         const RAWG_KEY = "599d140e70a649629b0a68848d53d262";
         let items = JSON.parse(localStorage.getItem('media_v1')) || [];
         let showAll = false;
+        let collapsedSections = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
         let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
 
         const PRIORITY_LABELS = { 1: "Immediate", 2: "High", 3: "Medium", 4: "Low" };
@@ -202,18 +203,34 @@
             }
         }
 
+        function toggleSection(key) {
+            collapsedSections[key] = !collapsedSections[key];
+            localStorage.setItem('vault_collapsed', JSON.stringify(collapsedSections));
+            render();
+        }
+
         function render() {
             const container = document.getElementById('tables-container');
             const query = document.getElementById('searchInput').value.toLowerCase();
             container.innerHTML = '';
             const labels = { movie: 'CINEMA', tv: 'SERIES', vidya: 'GAMES' };
+            
             Object.entries(labels).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key);
                 if (!showAll) list = list.filter(i => i.status !== 'done');
                 if (query) list = list.filter(i => i.title.toLowerCase().includes(query));
                 list.sort((a, b) => a.priority - b.priority || b.score - a.score);
-                if (list.length === 0) return;
-                let h = `<section><div class="flex items-center gap-4 mb-8"><h2 class="text-[11px] font-black tracking-[0.4em] text-slate-500 italic">${label}</h2><div class="h-px flex-1 bg-gradient-to-r from-slate-800 to-transparent"></div></div><div class="space-y-6">`;
+                if (list.length === 0 && !query) return;
+
+                const isCollapsed = collapsedSections[key];
+                let h = `<section>
+                    <button onclick="toggleSection('${key}')" class="flex items-center w-full gap-4 mb-4 group">
+                        <h2 class="text-[11px] font-black tracking-[0.4em] text-slate-500 italic group-hover:text-sky-400 transition-colors">${label}</h2>
+                        <div class="h-px flex-1 bg-gradient-to-r from-slate-800 to-transparent"></div>
+                        <span class="text-[10px] text-slate-700 font-bold uppercase tracking-widest">${isCollapsed ? 'Expand' : 'Collapse'}</span>
+                    </button>
+                    <div class="space-y-6 ${isCollapsed ? 'hidden' : ''}">`;
+                
                 list.forEach(i => {
                     const sC = i.status === 'in progress' ? 'status-progress' : (i.status === 'done' ? 'status-done' : 'status-todo');
                     h += `<div class="cat-${i.category} glow-${i.priority} p-6 rounded-r-2xl shadow-lg ${i.status === 'done' ? 'opacity-20 grayscale scale-[0.98]' : ''}"><div class="flex justify-between items-center gap-4"><div class="flex-1"><h3 class="font-black text-white text-lg uppercase tracking-tight flex items-center gap-2"><span contenteditable="true" onblur="updateField(${i.id}, 'title', this.innerText)" class="editable">${i.title}</span><span class="text-[12px] text-slate-400 font-mono italic ml-auto">${i.release}</span></h3><div class="flex gap-4 mt-3 items-center">
