@@ -105,13 +105,22 @@
         async function getIGDBToken() {
             let token = localStorage.getItem('igdb_token');
             if (token) return token;
-            const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://id.twitch.tv/oauth2/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials`)}`, { method: 'POST' });
+            
+            logStatus("Authenticating...");
+            const authUrl = `https://id.twitch.tv/oauth2/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials`;
+            const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(authUrl)}`, { method: 'POST', cache: 'no-store' });
+            
+            if (!r.ok) {
+                localStorage.removeItem('igdb_token');
+                throw new Error("Twitch Auth Failed");
+            }
+
             const data = await r.json();
             if (data.access_token) {
                 localStorage.setItem('igdb_token', data.access_token);
                 return data.access_token;
             }
-            throw new Error("Auth Failed");
+            throw new Error("No Access Token");
         }
 
         async function addItem() {
@@ -139,6 +148,7 @@
                         headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` },
                         body: q
                     });
+                    
                     const data = await r.json();
                     if (data?.[0]) {
                         const g = data[0];
@@ -155,6 +165,8 @@
                         });
                         const hData = await hltb.json();
                         if (hData.data?.[0]) item.runtime = Math.round(hData.data[0].comp_main / 3600) + 'h';
+                    } else {
+                        logStatus("Game Not Found.");
                     }
                 } else {
                     logStatus(`Searching TMDB...`);
@@ -173,8 +185,8 @@
                 }
                 logStatus("Sync Complete.");
             } catch (e) { 
-                logStatus("Sync Error.");
-                localStorage.removeItem('igdb_token');
+                logStatus(`Sync Error: ${e.message}`);
+                localStorage.removeItem('igdb_token'); // Clear token to retry fresh auth
             }
             document.getElementById('app-root').classList.remove('syncing');
             render();
