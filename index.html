@@ -73,7 +73,6 @@
         const CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
         const REDIRECT_URI = "https://jgonzalezmurphy.github.io/v2/";
 
-        // Handle OAuth Redirect
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         if (params.has('access_token')) {
@@ -127,9 +126,7 @@
 
             if (c === 'vidya' && !localStorage.getItem('igdb_token')) {
                 const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=`;
-                if(confirm("Twitch requires one-click authorization to fetch game data. Redirect now?")) {
-                    window.location.href = authUrl;
-                }
+                if(confirm("Authorize Twitch?")) window.location.href = authUrl;
                 return;
             }
 
@@ -148,35 +145,27 @@
                     const token = localStorage.getItem('igdb_token');
                     logStatus("IGDB Sync...");
                     const q = `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;`;
-                    
                     const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
                         method: 'POST',
                         headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` },
                         body: q
                     });
-                    
-                    if (r.status === 401) {
-                        localStorage.removeItem('igdb_token');
-                        logStatus("Auth Expired. Re-add to refresh.");
-                        return;
-                    }
-                    
+                    if (r.status === 401) { localStorage.removeItem('igdb_token'); return; }
                     const d = await r.json();
                     if (d?.[0]) {
                         item.title = d[0].name;
                         item.score = d[0].rating ? Math.round(d[0].rating) : 0;
                         item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2025";
                         item.genre = d[0].genres?.[0]?.name || "Game";
-
                         try {
                             const hltb = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Origin': 'https://howlongtobeat.com' },
-                                body: JSON.stringify({ searchType: "games", searchTerms: [item.title], searchPage: 1, size: 1 })
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ searchType: "games", searchTerms: item.title.split(" "), searchPage: 1, size: 5 })
                             });
                             const hData = await hltb.json();
                             if (hData.data?.[0]) item.runtime = Math.round(hData.data[0].comp_main / 3600) + 'h';
-                        } catch(e) { item.runtime = '??'; }
+                        } catch(e) {}
                     }
                 } else {
                     logStatus("TMDB Sync...");
@@ -194,9 +183,7 @@
                     }
                 }
                 logStatus("Ready.");
-            } catch (e) { 
-                logStatus("Sync Error.");
-            }
+            } catch (e) { logStatus("Sync Error."); }
             document.getElementById('app-root').classList.remove('syncing');
             render();
         }
@@ -213,15 +200,13 @@
                 if (!showAll) list = list.filter(i => i.status !== 'done');
                 list.sort((a, b) => a.priority - b.priority);
                 if (list.length === 0) return;
-
                 const isCol = collapsed[key];
-                let section = `<section class="${isCol?'collapsed':''}">
+                let section = `<section>
                     <div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-4 cursor-pointer select-none">
                         <svg class="w-3 h-3 text-white transition-transform ${isCol?'-rotate-90':''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M19 9l-7 7-7-7"/></svg>
                         <h2 class="text-xs font-black tracking-widest text-white/60 uppercase">${label}</h2>
                     </div>
-                    <div class="collapsible-content space-y-4" style="max-height:${isCol?'0':'10000px'}">`;
-                
+                    <div class="space-y-4" style="display:${isCol?'none':'block'}">`;
                 list.forEach(i => {
                     section += `
                     <div class="media-card card-${key} priority-bg-${i.priority} p-4">
