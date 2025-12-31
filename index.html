@@ -19,9 +19,8 @@
         .category-watermark { position: absolute; top: 2px; right: 8px; font-size: 2.8rem; font-weight: 950; opacity: 0.05; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; line-height: 1; }
         .glass { background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         #status-log { font-family: monospace; font-size: 10px; color: #64748b; text-align: center; margin-top: 8px; }
-        .collapsible-content { transition: max-height 0.3s ease-out; overflow: hidden; }
-        .collapsed .collapsible-content { max-height: 0 !important; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+        .syncing #vault-logo { animation: pulse 1s infinite; }
         .sync-active { animation: pulse 1s infinite; background-color: #38bdf8 !important; }
         .sync-success { background-color: #22c55e !important; }
     </style>
@@ -34,7 +33,7 @@
                     <h1 id="vault-logo" class="text-3xl font-black text-white italic tracking-tighter">VAULT</h1>
                     <p class="text-slate-300 text-[10px] uppercase font-bold tracking-[0.2em]">Archive 2025</p>
                 </div>
-                <div id="cloud-indicator" class="w-2 h-2 rounded-full bg-slate-700 transition-colors duration-500 mt-1"></div>
+                <div id="cloud-indicator" class="w-2 h-2 rounded-full bg-slate-700 mt-1"></div>
             </div>
             <div class="flex gap-2">
                 <button onclick="toggleCompleted()" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
@@ -43,7 +42,7 @@
         </header>
 
         <div class="mb-6">
-            <input type="text" id="searchInput" oninput="render()" placeholder="Search Archive..." class="w-full bg-slate-900/60 border border-slate-700 p-4 rounded-xl text-white outline-none focus:border-sky-500 transition-colors">
+            <input type="text" id="searchInput" oninput="render()" placeholder="Search Archive..." class="w-full bg-slate-900/60 border border-slate-700 p-4 rounded-xl text-white outline-none">
         </div>
 
         <div class="glass p-5 rounded-3xl mb-12">
@@ -62,7 +61,7 @@
                         <option value="4">Low</option>
                     </select>
                 </div>
-                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white shadow-lg active:scale-95 transition-transform">Add Entry</button>
+                <button id="add-btn" onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white shadow-lg active:scale-95 transition-transform">Add Entry</button>
                 <div id="status-log">System Ready</div>
             </div>
         </div>
@@ -71,9 +70,17 @@
 
     <script>
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
-        const CLIENT_ID = "gp762nuuoqcoxypju8c569th9wz7q5";
-        const CLIENT_SECRET = "re9omrwlj0l0rlz9fm595xh3cpvkh5"; 
-        
+        const CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
+        const REDIRECT_URI = "https://jgonzalezmurphy.github.io/v2/";
+
+        // Handle OAuth Redirect
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        if (params.has('access_token')) {
+            localStorage.setItem('igdb_token', params.get('access_token'));
+            history.replaceState(null, null, window.location.pathname + window.location.search);
+        }
+
         let items = JSON.parse(localStorage.getItem('media_v1')) || [];
         let collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
         let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
@@ -85,10 +92,9 @@
             localStorage.setItem('media_v1', JSON.stringify(items)); 
             localStorage.setItem('vault_collapsed', JSON.stringify(collapsed));
             render(); 
-            
             if (cloudConfig.token && cloudConfig.gistId) {
-                const indicator = document.getElementById('cloud-indicator');
-                indicator.className = "w-2 h-2 rounded-full sync-active";
+                const ind = document.getElementById('cloud-indicator');
+                ind.className = "w-2 h-2 rounded-full sync-active";
                 try {
                     const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { 
                         method: "PATCH", 
@@ -96,56 +102,21 @@
                         body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) 
                     });
                     if(res.ok) {
-                        indicator.className = "w-2 h-2 rounded-full sync-success";
-                        setTimeout(() => indicator.className = "w-2 h-2 rounded-full bg-slate-700", 2000);
+                        ind.className = "w-2 h-2 rounded-full sync-success";
+                        setTimeout(() => ind.className = "w-2 h-2 rounded-full bg-slate-700", 2000);
                     }
-                } catch(e) {
-                    indicator.className = "w-2 h-2 rounded-full bg-red-500";
-                }
+                } catch(e) { ind.className = "w-2 h-2 rounded-full bg-red-500"; }
             }
         }
 
-        async function setupCloud() {
+        function setupCloud() {
             const token = prompt("GitHub Token:", cloudConfig.token);
             const gistId = prompt("Gist ID:", cloudConfig.gistId);
-            if (token !== null && gistId !== null) {
+            if (token && gistId) {
                 cloudConfig = { token, gistId };
                 localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
-                logStatus("Cloud Linked.");
                 save();
             }
-        }
-
-        async function getIGDBToken() {
-            let token = localStorage.getItem('igdb_token');
-            let expiry = localStorage.getItem('igdb_expiry');
-            if (token && expiry && Date.now() < parseInt(expiry)) return token;
-
-            logStatus("Authenticating...");
-            const authUrl = `https://id.twitch.tv/oauth2/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials`;
-            
-            try {
-                // AllOrigins works best for Twitch OAuth POST handling
-                const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(authUrl)}`, { method: 'POST' });
-                const wrap = await r.json();
-                const data = JSON.parse(wrap.contents);
-
-                if (data.access_token) {
-                    const exp = Date.now() + (data.expires_in * 1000) - 3600000;
-                    localStorage.setItem('igdb_token', data.access_token);
-                    localStorage.setItem('igdb_expiry', exp.toString());
-                    return data.access_token;
-                }
-            } catch (e) {
-                // Fallback to thingproxy
-                const r2 = await fetch(`https://thingproxy.freeboard.io/fetch/${authUrl}`, { method: 'POST' });
-                const data2 = await r2.json();
-                if (data2.access_token) {
-                    localStorage.setItem('igdb_token', data2.access_token);
-                    return data2.access_token;
-                }
-            }
-            throw new Error("Auth Failed");
         }
 
         async function addItem() {
@@ -153,6 +124,15 @@
             const c = document.getElementById('category').value;
             const p = document.getElementById('priority').value;
             if (!t) return;
+
+            if (c === 'vidya' && !localStorage.getItem('igdb_token')) {
+                const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=`;
+                if(confirm("Twitch requires one-click authorization to fetch game data. Redirect now?")) {
+                    window.location.href = authUrl;
+                }
+                return;
+            }
+
             const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025', runtime: '--' };
             items.push(newItem);
             document.getElementById('title').value = '';
@@ -165,34 +145,41 @@
             document.getElementById('app-root').classList.add('syncing');
             try {
                 if (item.category === 'vidya') {
-                    const token = await getIGDBToken();
-                    logStatus(`Searching IGDB...`);
+                    const token = localStorage.getItem('igdb_token');
+                    logStatus("IGDB Sync...");
                     const q = `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;`;
                     
-                    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
+                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
                         method: 'POST',
                         headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` },
                         body: q
                     });
-                    const data = await res.json();
                     
-                    if (data?.[0]) {
-                        const g = data[0];
-                        item.title = g.name;
-                        item.score = g.rating ? Math.round(g.rating) : 0;
-                        item.release = g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : "2025";
-                        item.genre = g.genres?.[0]?.name || "Game";
+                    if (r.status === 401) {
+                        localStorage.removeItem('igdb_token');
+                        logStatus("Auth Expired. Re-add to refresh.");
+                        return;
+                    }
+                    
+                    const d = await r.json();
+                    if (d?.[0]) {
+                        item.title = d[0].name;
+                        item.score = d[0].rating ? Math.round(d[0].rating) : 0;
+                        item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2025";
+                        item.genre = d[0].genres?.[0]?.name || "Game";
 
-                        const hltb = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Origin': 'https://howlongtobeat.com' },
-                            body: JSON.stringify({ searchType: "games", searchTerms: [item.title], searchPage: 1, size: 1 })
-                        });
-                        const hData = await hltb.json();
-                        if (hData.data?.[0]) item.runtime = Math.round(hData.data[0].comp_main / 3600) + 'h';
+                        try {
+                            const hltb = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Origin': 'https://howlongtobeat.com' },
+                                body: JSON.stringify({ searchType: "games", searchTerms: [item.title], searchPage: 1, size: 1 })
+                            });
+                            const hData = await hltb.json();
+                            if (hData.data?.[0]) item.runtime = Math.round(hData.data[0].comp_main / 3600) + 'h';
+                        } catch(e) { item.runtime = '??'; }
                     }
                 } else {
-                    logStatus(`Searching TMDB...`);
+                    logStatus("TMDB Sync...");
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
                     const d = await r.json();
                     if (d.results?.[0]) {
@@ -206,10 +193,9 @@
                         item.runtime = rt ? rt + 'm' : '--';
                     }
                 }
-                logStatus("Sync Complete.");
+                logStatus("Ready.");
             } catch (e) { 
                 logStatus("Sync Error.");
-                localStorage.removeItem('igdb_token');
             }
             document.getElementById('app-root').classList.remove('syncing');
             render();
