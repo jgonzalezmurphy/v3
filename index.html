@@ -179,14 +179,13 @@
             try {
                 if (item.category === 'vidya') {
                     logStatus(`Searching RAWG for ${item.title}...`);
-                    const url = `https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&search_precise=true&page_size=1&_=${Date.now()}`;
+                    // Using CORSProxy.io for direct attempt to bypass mobile headers
+                    const rawgUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`;
+                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawgUrl)}`;
                     
-                    const r = await fetch(url, {
-                        mode: 'cors',
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    
+                    const r = await fetch(proxyUrl);
                     const d = await r.json();
+                    
                     if (d.results && d.results.length > 0) {
                         const g = d.results[0];
                         item.title = g.name;
@@ -211,24 +210,20 @@
                     }
                 }
             } catch (e) { 
-                logStatus("Direct Fetch Blocked. Trying Fallback...");
+                logStatus("Fetch error. Retrying search...");
+                // Final effort: Search without any special headers
                 if (item.category === 'vidya') {
                    try {
-                       const fallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${item.title}&page_size=1`)}`;
-                       const res = await fetch(fallbackUrl);
+                       const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${item.title}&page_size=1`);
                        const data = await res.json();
-                       const g = JSON.parse(data.contents).results[0];
-                       if (g) {
-                           item.title = g.name;
-                           item.score = g.metacritic || 0;
-                           item.release = g.released?.split('-')[0] || "---";
-                           item.genre = g.genres?.[0]?.name || "Game";
-                           logStatus("Fallback Success.");
-                       } else {
-                           logStatus("Fallback failed to find data.");
-                       }
+                       const g = data.results[0];
+                       item.title = g.name;
+                       item.score = g.metacritic || 0;
+                       item.release = g.released?.split('-')[0] || "---";
+                       item.genre = g.genres?.[0]?.name || "Game";
+                       logStatus("Success on Retry.");
                    } catch(err) {
-                       logStatus("All methods failed.");
+                       logStatus("Connection persistent block.");
                    }
                 }
             }
