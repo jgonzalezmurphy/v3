@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <title>VAULT</title>
     
-    <link rel="manifest" href="/v2/manifest.json?v=12">
+    <link rel="manifest" href="/v2/manifest.json?v=15">
     <meta name="theme-color" content="#0b0f1a">
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-    <link rel="apple-touch-icon" href="/v2/icon.png?v=2">
+    <link rel="apple-touch-icon" href="/v2/icon.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -27,15 +27,14 @@
             padding: 1rem; 
             min-height: 100vh; 
             padding-top: env(safe-area-inset-top); 
-            overflow-x: hidden; 
         }
         
         .media-card { 
             position: relative;
             border: 1px solid rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(12px);
-            overflow: hidden;
             border-radius: 12px;
+            overflow: hidden;
         }
 
         .priority-bg-1 { background: linear-gradient(135deg, rgba(153, 27, 27, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
@@ -43,35 +42,8 @@
         .priority-bg-3 { background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
         .priority-bg-4 { background: rgba(30, 41, 59, 0.5); }
 
-        .card-movie { border-left: 5px solid #ef4444; }
-        .card-tv { border-left: 5px solid #10b981; }
         .card-vidya { border-left: 5px solid #fbbf24; }
-
-        .category-watermark {
-            position: absolute;
-            top: 2px;
-            right: 8px;
-            font-size: 2.8rem;
-            font-weight: 950;
-            opacity: 0.08;
-            pointer-events: none;
-            font-style: italic;
-            text-transform: uppercase;
-            z-index: 0;
-            line-height: 1;
-        }
-
-        .play-btn {
-            width: 28px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .play-btn svg { fill: rgba(255, 255, 255, 0.3); }
+        .card-movie { border-left: 5px solid #ef4444; }
 
         .glass { background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         
@@ -96,13 +68,8 @@
             </div>
             <div class="flex gap-2">
                 <button onclick="toggleCompleted()" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
-                <button onclick="setupCloud()" class="text-sky-400 text-[10px] uppercase font-black">Cloud</button>
             </div>
         </header>
-
-        <div class="mb-6">
-            <input type="text" id="searchInput" oninput="render()" placeholder="Search..." class="w-full bg-slate-900 border-2 border-slate-700 p-4 rounded-xl text-white">
-        </div>
 
         <div class="glass p-5 rounded-3xl mb-12">
             <div class="grid grid-cols-1 gap-4">
@@ -110,14 +77,10 @@
                 <div class="grid grid-cols-2 gap-3">
                     <select id="category" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase">
                         <option value="movie">🎥 Movie</option>
-                        <option value="tv">📺 TV Show</option>
                         <option value="vidya" selected>🎮 Video Game</option>
                     </select>
                     <select id="priority" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase">
-                        <option value="1">Immediate</option>
-                        <option value="2">High</option>
-                        <option value="3" selected>Medium</option>
-                        <option value="4">Low</option>
+                        <option value="1">P1</option><option value="2">P2</option><option value="3" selected>P3</option><option value="4">P4</option>
                     </select>
                 </div>
                 <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white">Add Entry</button>
@@ -130,43 +93,24 @@
 
     <script>
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
-        const RAWG_KEY = "599d140e70a649629b0a68848d53d262";
+        const CLIENT_ID = "gp762nuuoqcoxypju8c569th9wz7q5"; 
         
         let items = JSON.parse(localStorage.getItem('media_v1')) || [];
         let showAll = false;
-        let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
 
-        function logStatus(msg) {
-            document.getElementById('status-log').innerText = msg;
-        }
+        function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
 
         async function save() { 
             localStorage.setItem('media_v1', JSON.stringify(items)); 
             render(); 
-            if (cloudConfig.token && cloudConfig.gistId) {
-                try {
-                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { 
-                        method: "PATCH", 
-                        headers: { "Authorization": `token ${cloudConfig.token}` }, 
-                        body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) 
-                    });
-                } catch(e) {}
-            }
         }
 
-        async function setupCloud() {
-            const token = prompt("GitHub Token:", cloudConfig.token);
-            if (!token) return;
-            cloudConfig.token = token;
-            localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
-        }
-        
         async function addItem() {
             const t = document.getElementById('title').value.trim();
             const c = document.getElementById('category').value;
             const p = document.getElementById('priority').value;
             if (!t) return;
-            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', runtime: 'N/A', score: 0, genre: '---', release: '---' };
+            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025' };
             items.push(newItem);
             document.getElementById('title').value = '';
             render();
@@ -178,38 +122,28 @@
             document.getElementById('app-root').classList.add('syncing');
             try {
                 if (item.category === 'vidya') {
-                    logStatus(`Analyzing: ${item.title}`);
+                    logStatus(`Searching IGDB for: ${item.title}`);
+                    const query = `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;`;
                     
-                    // Strategy 1: Search endpoint
-                    const searchUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`;
-                    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`);
-                    const d = await r.json();
-                    const data = JSON.parse(d.contents);
-                    
-                    let g = data.results?.[0];
+                    // Directing through a standard CORS proxy to handle headers on mobile
+                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
+                        method: 'POST',
+                        headers: { 'Client-ID': CLIENT_ID },
+                        body: query
+                    });
 
-                    // Strategy 2: If no search results, try direct slug matching (Avowed -> avowed)
-                    if (!g) {
-                        logStatus("Fuzzy search failed. Trying Slug match...");
-                        const slug = item.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
-                        const slugUrl = `https://api.rawg.io/api/games/${slug}?key=${RAWG_KEY}`;
-                        const r2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(slugUrl)}`);
-                        const d2 = await r2.json();
-                        g = JSON.parse(d2.contents);
-                        if (g.detail === "Not found.") g = null;
-                    }
-                    
-                    if (g) {
+                    const data = await r.json();
+                    if (data && data[0]) {
+                        const g = data[0];
                         item.title = g.name;
-                        item.score = g.metacritic || (g.rating ? Math.round(g.rating * 20) : 0);
-                        item.release = (g.released || g.tba || "---").split('-')[0];
-                        item.genre = g.genres?.[0]?.name || "Game";
-                        logStatus("Game Found.");
+                        item.score = g.rating ? Math.round(g.rating) : 0;
+                        item.release = g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : "2025";
+                        item.genre = g.genres ? g.genres[0].name : "Game";
+                        logStatus("IGDB Sync Success.");
                     } else {
-                        logStatus("Final: Zero Results.");
+                        logStatus("No Match Found on IGDB.");
                     }
                 } else {
-                    logStatus(`TMDB Search...`);
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
                     const d = await r.json();
                     if (d.results?.[0]) {
@@ -218,79 +152,46 @@
                         item.release = (m.release_date || m.first_air_date || "").split('-')[0];
                         item.score = Math.round(m.vote_average * 10);
                         item.genre = item.category.toUpperCase();
-                        logStatus("Media Data Linked.");
+                        logStatus("TMDB Sync Success.");
                     }
                 }
-            } catch (e) { 
-                logStatus("Fetch failed.");
-            }
+            } catch (e) { logStatus("Connection Error."); }
             document.getElementById('app-root').classList.remove('syncing');
             render();
-        }
-
-        function updateField(id, field, value) {
-            const item = items.find(i => i.id === id);
-            if (item) { 
-                item[field] = (field === 'score' || field === 'priority') ? parseInt(value) || 0 : value; 
-                save(); 
-            }
         }
 
         function render() {
             const container = document.getElementById('tables-container');
             container.innerHTML = '';
-            const labels = { movie: '🎥 CINEMA', tv: '📺 SERIES', vidya: '🎮 GAMES' };
+            const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA' };
 
-            Object.entries(labels).forEach(([key, label]) => {
+            Object.entries(cats).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key);
                 if (!showAll) list = list.filter(i => i.status !== 'done');
                 list.sort((a, b) => a.priority - b.priority);
                 if (list.length === 0) return;
 
-                let h = `<section class="px-1"><h2 class="text-[10px] font-black tracking-widest text-white mb-4 uppercase opacity-50">${label}</h2><div class="space-y-4">`;
-                
+                let section = `<section><h2 class="text-[10px] font-black text-white/40 mb-4 uppercase">${label}</h2><div class="space-y-4">`;
                 list.forEach(i => {
-                    const luckyUrl = `https://www.google.com/search?q=${encodeURIComponent(i.title + " " + (key==='vidya'?'game':'') + " official trailer site:youtube.com")}&btnI=1`;
-                    
-                    h += `
+                    section += `
                     <div class="media-card card-${key} priority-bg-${i.priority} p-4">
-                        <div class="category-watermark">${key.toUpperCase()}</div>
-                        
-                        <div class="flex justify-between items-start mb-1 relative z-10">
-                            <h3 class="font-black text-white text-base uppercase">
-                                <span contenteditable="true" onblur="updateField(${i.id}, 'title', this.innerText)">${i.title}</span>
-                            </h3>
-                            <span class="font-mono font-black text-xl text-sky-400" contenteditable="true" onblur="updateField(${i.id}, 'score', this.innerText)">${i.score || '0'}</span>
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-black text-white uppercase">${i.title}</h3>
+                            <span class="font-mono text-xl text-sky-400">${i.score}</span>
                         </div>
-
-                        <div class="flex items-center justify-between mb-4 relative z-10">
-                            <span class="text-[10px] text-white/60 font-bold uppercase">${i.genre} • ${i.release}</span>
-                            <a href="${luckyUrl}" target="_blank" class="play-btn">
-                                <svg width="12" height="12" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            </a>
-                        </div>
-
-                        <div class="flex gap-2 relative z-10">
-                            <select onchange="updateField(${i.id}, 'priority', this.value)" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 w-24">
-                                <option value="1" ${i.priority===1?'selected':''}>Imm</option>
-                                <option value="2" ${i.priority===2?'selected':''}>High</option>
-                                <option value="3" ${i.priority===3?'selected':''}>Med</option>
-                                <option value="4" ${i.priority===4?'selected':''}>Low</option>
-                            </select>
-                            <select onchange="updateField(${i.id}, 'status', this.value)" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1">
+                        <div class="text-[10px] text-white/50 font-bold uppercase mb-4">${i.genre} • ${i.release}</div>
+                        <div class="flex gap-2">
+                            <select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1">
                                 <option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option>
-                                <option value="in progress" ${i.status==='in progress'?'selected':''}>In Progress</option>
                                 <option value="done" ${i.status==='done'?'selected':''}>Done</option>
                             </select>
-                            <button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-red-400 text-[10px] font-black uppercase px-2 py-2 bg-red-900/20 rounded border border-red-900/40">Del</button>
+                            <button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-red-400 text-[10px] font-black uppercase px-3 py-2 bg-red-900/20 rounded border border-red-900/40">Del</button>
                         </div>
                     </div>`;
                 });
-                container.innerHTML += h + `</div></section>`;
+                container.innerHTML += section + `</div></section>`;
             });
         }
-
-        function toggleCompleted() { showAll = !showAll; render(); }
         render();
     </script>
 </body>
