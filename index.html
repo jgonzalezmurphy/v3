@@ -178,26 +178,35 @@
             document.getElementById('app-root').classList.add('syncing');
             try {
                 if (item.category === 'vidya') {
-                    logStatus("Initiating Bypass Fetch...");
+                    logStatus(`Analyzing: ${item.title}`);
                     
-                    // Logic: Use AllOrigins with a direct URL encoding. 
-                    // This specific endpoint is often more reliable on mobile.
-                    const target = `https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`;
-                    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
+                    // Strategy 1: Search endpoint
+                    const searchUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`;
+                    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`);
                     const d = await r.json();
-                    
-                    // Parse the wrapped content
                     const data = JSON.parse(d.contents);
                     
-                    if (data.results && data.results.length > 0) {
-                        const g = data.results[0];
+                    let g = data.results?.[0];
+
+                    // Strategy 2: If no search results, try direct slug matching (Avowed -> avowed)
+                    if (!g) {
+                        logStatus("Fuzzy search failed. Trying Slug match...");
+                        const slug = item.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
+                        const slugUrl = `https://api.rawg.io/api/games/${slug}?key=${RAWG_KEY}`;
+                        const r2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(slugUrl)}`);
+                        const d2 = await r2.json();
+                        g = JSON.parse(d2.contents);
+                        if (g.detail === "Not found.") g = null;
+                    }
+                    
+                    if (g) {
                         item.title = g.name;
                         item.score = g.metacritic || (g.rating ? Math.round(g.rating * 20) : 0);
-                        item.release = g.released?.split('-')[0] || "---";
+                        item.release = (g.released || g.tba || "---").split('-')[0];
                         item.genre = g.genres?.[0]?.name || "Game";
-                        logStatus("Success: Entry Linked.");
+                        logStatus("Game Found.");
                     } else {
-                        logStatus("Zero Results Found.");
+                        logStatus("Final: Zero Results.");
                     }
                 } else {
                     logStatus(`TMDB Search...`);
@@ -213,8 +222,7 @@
                     }
                 }
             } catch (e) { 
-                logStatus("Encryption/Security Block.");
-                console.error(e);
+                logStatus("Fetch failed.");
             }
             document.getElementById('app-root').classList.remove('syncing');
             render();
