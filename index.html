@@ -20,14 +20,10 @@
         * { box-sizing: border-box; }
         body { background-color: var(--bg) !important; color: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 1rem; min-height: 100vh; padding-top: env(safe-area-inset-top); overflow-x: hidden; }
         
-        .cat-movie { border-left: 4px solid #ef4444; }
-        .cat-tv { border-left: 4px solid #10b981; }
-        .cat-vidya { border-left: 4px solid #f59e0b; }
-        
-        .glow-1 { background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, #161b22 100%); }
-        .glow-2 { background: linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, #161b22 100%); }
-        .glow-3 { background: linear-gradient(90deg, rgba(56, 189, 248, 0.06) 0%, #161b22 100%); }
-        .glow-4 { background: linear-gradient(90deg, rgba(148, 163, 184, 0.05) 0%, #161b22 100%); }
+        /* Category Specific Theming with Distinct Shading */
+        .card-movie { border-left: 4px solid #ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, #0f172a 100%); }
+        .card-tv { border-left: 4px solid #10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, #0f172a 100%); }
+        .card-vidya { border-left: 4px solid #f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, #0f172a 100%); }
         
         .priority-1 { color: #f87171; font-weight: 900; } 
         .priority-2 { color: #fbbf24; font-weight: 800; } 
@@ -215,7 +211,7 @@
             const container = document.getElementById('tables-container');
             const query = document.getElementById('searchInput').value.toLowerCase();
             container.innerHTML = '';
-            const labels = { movie: 'CINEMA', tv: 'SERIES', vidya: 'GAMES' };
+            const labels = { movie: '🎥 CINEMA', tv: '📺 SERIES', vidya: '🎮 GAMES' };
             
             Object.entries(labels).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key);
@@ -239,8 +235,8 @@
                 list.forEach(i => {
                     const sC = i.status === 'in progress' ? 'status-progress' : (i.status === 'done' ? 'status-done' : 'status-todo');
                     h += `
-                    <div class="cat-${i.category} glow-${i.priority} p-4 rounded-r-xl border-r border-y border-slate-800/60 ${i.status === 'done' ? 'opacity-30' : ''}">
-                        <div class="flex justify-between items-start mb-2">
+                    <div class="card-${i.category} p-4 rounded-r-xl border-r border-y border-slate-800/60 ${i.status === 'done' ? 'opacity-30 grayscale' : ''}">
+                        <div class="flex justify-between items-start mb-1">
                             <h3 class="font-black text-white text-base uppercase tracking-tight leading-tight pr-4">
                                 <span contenteditable="true" onblur="updateField(${i.id}, 'title', this.innerText)" class="editable">${i.title}</span>
                             </h3>
@@ -256,7 +252,7 @@
                                 <option value="3" ${i.priority===3?'selected':''}>Medium</option>
                                 <option value="4" ${i.priority===4?'selected':''}>Low</option>
                             </select>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate">
+                            <span class="text-[10px] text-slate-300 font-bold uppercase tracking-widest truncate">
                                 ${i.genre} • ${i.release} • <span contenteditable="true" onblur="updateField(${i.id}, 'runtime', this.innerText)" class="editable">${i.runtime}</span>
                             </span>
                         </div>
