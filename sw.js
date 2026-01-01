@@ -1,19 +1,19 @@
-// Increment this version number (e.g., v2, v3, v4) whenever you update your index.html logic
-const CACHE_NAME = 'vault-v19'; 
-
+const CACHE_NAME = 'vault-v20'; 
 const ASSETS = [
   'index.html',
-  'manifest.json'
+  'manifest.json',
+  'icon.png'
 ];
 
-// Installs the new version and caches the assets
+// Installs and caches assets
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
-// Logic to clean up old versions of the cache so they don't take up space
+// Clean up old caches
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -22,11 +22,14 @@ self.addEventListener('activate', (e) => {
       );
     })
   );
+  return self.clients.claim();
 });
 
-// Serves files from cache if available, otherwise fetches from network
+// Network-first falling back to cache
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((res) => res || fetch(e.request))
+    fetch(e.request).catch(() => {
+      return caches.match(e.request);
+    })
   );
 });
