@@ -22,7 +22,7 @@
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
         .syncing #vault-logo { animation: pulse 1s infinite; }
         
-        .notes-trigger { font-size: 9px; font-weight: 900; color: #38bdf8; letter-spacing: 0.1em; cursor: pointer; margin-top: 12px; display: block; }
+        .notes-trigger { font-size: 9px; font-weight: 900; color: #38bdf8; letter-spacing: 0.1em; cursor: pointer; margin-top: 6px; display: block; opacity: 0.6; }
         .notes-area { 
             background: rgba(0,0,0,0.4); 
             border: 1px solid rgba(255,255,255,0.08); 
@@ -36,13 +36,13 @@
             overflow: hidden;
             height: 0;
             opacity: 0;
-            transition: all 0.2s ease-out;
+            transition: opacity 0.2s ease-out;
         }
         .notes-area:focus, .notes-area:not(:placeholder-shown) {
             height: auto;
             min-height: 50px;
             padding: 10px;
-            margin-top: 6px;
+            margin-top: 4px;
             opacity: 1;
         }
     </style>
@@ -52,7 +52,7 @@
         <header class="mb-6 flex justify-between items-end">
             <div>
                 <h1 id="vault-logo" class="text-3xl font-black text-white italic tracking-tighter">VAULT</h1>
-                <p class="text-slate-300 text-[10px] uppercase font-bold tracking-[0.2em]">Archive 2025</p>
+                <p class="text-slate-300 text-[10px] uppercase font-bold tracking-[0.2em]">Archive 2026</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="toggleCompleted()" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
@@ -144,7 +144,7 @@
                     if (d?.[0]) {
                         item.title = d[0].name;
                         item.score = d[0].rating ? Math.round(d[0].rating) : 0;
-                        item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2025";
+                        item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026";
                         item.genre = d[0].genres?.[0]?.name || "Game";
                         item.runtime = await hltbSearchAggressive(item.title);
                     }
@@ -158,11 +158,9 @@
                         item.title = m.title || m.name;
                         item.score = Math.round(m.vote_average * 10);
                         item.release = (m.release_date || m.first_air_date || "").split('-')[0];
-                        
                         if (item.category === 'movie') {
                             item.runtime = det.runtime ? det.runtime + 'm' : '--';
                         } else {
-                            // TV Logic: Use Season/Episode count if duration per episode is missing
                             const eps = det.number_of_episodes;
                             const seasons = det.number_of_seasons;
                             const dur = det.episode_run_time?.[0];
@@ -182,11 +180,23 @@
             const c = document.getElementById('category').value;
             const p = document.getElementById('priority').value;
             if (!t) return;
-            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025', runtime: '--', notes: '' };
+            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2026', runtime: '--', notes: '' };
             items.push(newItem);
             document.getElementById('title').value = '';
             render();
             fetchMetadata(newItem);
+        }
+
+        function toggleCompleted() { showAll = !showAll; render(); }
+
+        function setupCloud() {
+            const token = prompt("GitHub Token:", cloudConfig.token);
+            const gistId = prompt("Gist ID:", cloudConfig.gistId);
+            if (token && gistId) {
+                cloudConfig = { token, gistId };
+                localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
+                logStatus("Cloud Updated.");
+            }
         }
 
         function autoExpand(el, id) {
@@ -204,6 +214,7 @@
             Object.entries(cats).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key);
                 if (!showAll) list = list.filter(i => i.status !== 'done');
+                else list = list.filter(i => i.status === 'done');
                 list.sort((a, b) => a.priority - b.priority);
                 if (list.length === 0) return;
                 const isCol = collapsed[key];
@@ -229,18 +240,19 @@
                         <textarea 
                             id="note-${i.id}"
                             class="notes-area relative z-10" 
-                            placeholder="Add your notes here..." 
+                            placeholder="..." 
                             oninput="autoExpand(this, ${i.id})"
                             onblur="save()"
-                            style="${hasNotes ? 'height:auto; min-height:50px; padding:10px; margin-top:6px; opacity:1;' : ''}"
+                            style="${hasNotes ? 'height:auto; min-height:50px; padding:10px; margin-top:4px; opacity:1;' : ''}"
                         >${i.notes || ''}</textarea>
 
-                        <div class="flex gap-2 mt-4 relative z-10">
+                        <div class="flex gap-2 mt-3 relative z-10">
                             <select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 outline-none">
                                 ${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}
                             </select>
                             <select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1 outline-none">
                                 <option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option>
+                                <option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option>
                                 <option value="done" ${i.status==='done'?'selected':''}>Done</option>
                             </select>
                             <button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-red-400 text-[10px] font-black px-3 py-2 bg-red-900/20 rounded border border-red-900/40">Del</button>
@@ -250,7 +262,6 @@
                 container.innerHTML += section + `</div></section>`;
             });
         }
-        function toggleCompleted() { showAll = !showAll; render(); }
         render();
     </script>
 </body>
