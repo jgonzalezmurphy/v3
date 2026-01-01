@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" href="icon.png"><link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-title" content="VAULT">
+    
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text y='75' x='20' font-family='Arial' font-weight='bold' font-size='80' fill='white'>V</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text y='75' x='20' font-family='Arial' font-weight='bold' font-size='80' fill='white'>V</text></svg>">
+    
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --bg: #e6faff; }
@@ -21,7 +26,7 @@
         .glass { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); }
         #status-log { font-family: monospace; font-size: 10px; color: #ffffff !important; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; opacity: 0.6; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .syncing #sync-icon { animation: spin 1s linear infinite; color: #38bdf8; }
+        .syncing #sync-icon { animation: spin 1s linear infinite; color: #38bdf8 !important; }
         #sync-icon:active { transform: scale(0.9); opacity: 0.7; }
         .notes-trigger { font-size: 8px; font-weight: 900; color: #38bdf8; letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase; }
         .notes-area { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; font-size: 11px; width: 100%; border-radius: 6px; outline: none; resize: none; overflow: hidden; height: 0; opacity: 0; transition: all 0.2s; margin: 0; }
@@ -37,7 +42,10 @@
                 <div id="sync-icon" onclick="pullFromCloud()" class="text-black transition-all cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><polyline points="22 4 22 10 16 10"></polyline></svg>
                 </div>
-                <div><h1 class="text-4xl font-[1000] text-black italic tracking-[-0.07em] uppercase leading-none">VAULT</h1><p class="text-black text-[10px] uppercase font-black mt-1 tracking-[0.25em]">Archive 2026</p></div>
+                <div>
+                    <h1 class="text-4xl font-[1000] text-black italic tracking-[-0.07em] uppercase leading-none">VAULT</h1>
+                    <p class="text-black text-[10px] uppercase font-black mt-1 tracking-[0.25em]">Archive 2026</p>
+                </div>
             </div>
             <div class="grid grid-cols-2 gap-1">
                 <button onclick="toggleCompleted()" class="text-white bg-black text-[8px] uppercase font-black px-2 py-1.5 rounded-lg shadow-md">History</button>
@@ -74,8 +82,10 @@
         let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, showAll = false;
         const savedSort = localStorage.getItem('vault_sort') || 'priority';
         document.getElementById('sort-order').value = savedSort;
+
         function logStatus(m) { document.getElementById('status-log').innerText = m; }
         function setSyncing(state) { state ? document.body.classList.add('syncing') : document.body.classList.remove('syncing'); }
+
         async function save() { 
             localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); 
             if (cloudConfig.token && cloudConfig.gistId) { 
@@ -85,6 +95,7 @@
                 finally { setSyncing(false); }
             } 
         }
+
         async function pullFromCloud() { 
             if (!cloudConfig.token || !cloudConfig.gistId) { logStatus("No Cloud Setup"); return; }
             setSyncing(true);
@@ -95,10 +106,12 @@
             } catch(e) { logStatus("Offline"); } 
             finally { setSyncing(false); }
         }
+
         function downloadBackup() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2)); a.download = "vault_backup.json"; a.click(); }
         function importBackup(i) { const r = new FileReader(); r.onload = e => { try { items = JSON.parse(e.target.result); save(); logStatus("Imported"); } catch(err) { logStatus("Invalid File"); } }; r.readAsText(i.files[0]); }
         async function refreshIGDBToken() { try { const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://id.twitch.tv/oauth2/token')}`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials` }); const d = await res.json(); if (d.access_token) { localStorage.setItem('igdb_token', d.access_token); return d.access_token; } } catch(e) { return null; } }
         async function hltbSearchAggressive(t) { const clean = t.replace(/[^a-zA-Z0-9\s]/g, '').trim(), words = clean.split(/\s+/); for (let i = words.length; i > 0; i--) { const q = words.slice(0, i).join(" "); try { const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ searchType: "games", searchTerms: q.split(" "), searchPage: 1, size: 5, use_fuzzy: true }) }); const d = await res.json(); if (d.data?.[0]?.comp_main > 0) return Math.round(d.data[0].comp_main / 3600) + 'h'; } catch(e) {} } return '--'; }
+
         async function fetchMetadata(item) { 
             setSyncing(true);
             try { 
@@ -117,21 +130,20 @@
                         item.score = Math.round(m.vote_average * 10); 
                         item.release = (m.release_date || m.first_air_date || "").split('-')[0]; 
                         item.genre = det.genres?.[0]?.name || item.category.toUpperCase();
-                        if (item.category === 'movie') {
-                            item.runtime = det.runtime ? det.runtime + 'm' : '--';
-                        } else {
-                            item.runtime = (det.number_of_seasons ? 'S' + det.number_of_seasons : 'S1') + ' E' + (det.number_of_episodes || '--');
-                        }
+                        if (item.category === 'movie') { item.runtime = det.runtime ? det.runtime + 'm' : '--'; } 
+                        else { item.runtime = (det.number_of_seasons ? 'S' + det.number_of_seasons : 'S1') + ' E' + (det.number_of_episodes || '--'); }
                     } 
                 } 
             } catch (e) { logStatus("API Error"); } 
             setSyncing(false); save(); 
         }
+
         function addItem() { const t = document.getElementById('title').value.trim(); if (!t) return; const newItem = { id: Date.now(), title: t, category: document.getElementById('category').value, priority: parseInt(document.getElementById('priority').value), status: 'to-do', score: 0, genre: 'Pending', release: '2026', runtime: '--', notes: '' }; items.push(newItem); document.getElementById('title').value = ''; render(); fetchMetadata(newItem); }
         function toggleCompleted() { showAll = !showAll; render(); }
         async function setupCloud() { const gt = prompt("GitHub Token:", cloudConfig.token), gi = prompt("Gist ID:", cloudConfig.gistId); if (gt !== null && gi !== null) { cloudConfig = { token: gt, gistId: gi }; localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); await pullFromCloud(); } }
         function confirmDelete(el, id) { if (el.innerText === 'DEL') { el.innerText = 'SURE?'; el.classList.add('btn-confirm'); setTimeout(() => { if(el) { el.innerText = 'DEL'; el.classList.remove('btn-confirm'); } }, 3000); } else { items = items.filter(z => z.id !== id); save(); } }
         function autoExpand(el, id) { el.style.height = 'inherit'; el.style.height = el.scrollHeight + 'px'; const i = items.find(x => x.id === id); if (i) { i.notes = el.value; localStorage.setItem('media_v1', JSON.stringify(items)); } }
+
         function render() { 
             const container = document.getElementById('tables-container'); container.innerHTML = ''; const s = document.getElementById('sort-order').value; 
             const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' }, pMap = { 1: 'IMM', 2: 'HI', 3: 'MED', 4: 'LOW' }; 
