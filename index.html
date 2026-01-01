@@ -89,9 +89,7 @@
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c", CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
         let items = JSON.parse(localStorage.getItem('media_v1')) || [], 
@@ -112,28 +110,30 @@
                         headers: { "Authorization": `token ${cloudConfig.token}` }, 
                         body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) 
                     }); 
-                } catch(e) { logStatus("Sync Failed."); }
+                    logStatus("Cloud Saved");
+                } catch(e) { logStatus("Sync Failed"); }
             }
         }
 
         async function pullFromCloud() {
             if (!cloudConfig.token || !cloudConfig.gistId) return;
-            logStatus("Syncing with Cloud...");
+            logStatus("Connecting to GitHub...");
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 8000);
             try {
                 const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, {
-                    headers: { "Authorization": `token ${cloudConfig.token}` }
+                    headers: { "Authorization": `token ${cloudConfig.token}` },
+                    signal: controller.signal
                 });
+                clearTimeout(id);
                 const data = await res.json();
-                if (data.files["vault.json"]) {
-                    const cloudItems = JSON.parse(data.files["vault.json"].content);
-                    if (cloudItems.length >= items.length) {
-                        items = cloudItems;
-                        localStorage.setItem('media_v1', JSON.stringify(items));
-                        render();
-                        logStatus("Cloud Data Restored");
-                    }
-                }
-            } catch(e) { logStatus("Cloud Pull Failed"); }
+                if (data.files && data.files["vault.json"]) {
+                    items = JSON.parse(data.files["vault.json"].content);
+                    localStorage.setItem('media_v1', JSON.stringify(items));
+                    render();
+                    logStatus("Cloud Restored");
+                } else { logStatus("No Cloud Data Found"); }
+            } catch(e) { logStatus(e.name === 'AbortError' ? "Sync Timeout" : "Sync Error"); }
         }
 
         async function hltbSearchAggressive(originalTitle) {
@@ -153,9 +153,15 @@
             try {
                 if (item.category === 'vidya') {
                     const token = localStorage.getItem('igdb_token');
+                    if (!token) { logStatus("Missing IGDB Token"); return; }
                     const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;` });
                     const d = await r.json();
-                    if (d?.[0]) { item.title = d[0].name; item.score = d[0].rating ? Math.round(d[0].rating) : 0; item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; item.genre = d[0].genres?.[0]?.name || "Game"; item.runtime = await hltbSearchAggressive(item.title); }
+                    if (d?.[0]) { 
+                        item.title = d[0].name; item.score = d[0].rating ? Math.round(d[0].rating) : 0; 
+                        item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; 
+                        item.genre = d[0].genres?.[0]?.name || "Game"; 
+                        item.runtime = await hltbSearchAggressive(item.title); 
+                    }
                 } else {
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
                     const d = await r.json();
@@ -166,24 +172,28 @@
                         item.genre = item.category.toUpperCase();
                     }
                 }
-            } catch (e) { logStatus("Metadata Error."); }
+            } catch (e) { logStatus("Metadata Error"); }
             document.getElementById('app-root').classList.remove('syncing'); save();
         }
 
         function addItem() {
-            const t = document.getElementById('title').value.trim(), c = document.getElementById('category').value, p = document.getElementById('priority').value;
+            const t = document.getElementById('title').value.trim();
             if (!t) return;
-            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2026', runtime: '--', notes: '' };
+            const newItem = { id: Date.now(), title: t, category: document.getElementById('category').value, priority: parseInt(document.getElementById('priority').value), status: 'to-do', score: 0, genre: 'Pending', release: '2026', runtime: '--', notes: '' };
             items.push(newItem); document.getElementById('title').value = ''; render(); fetchMetadata(newItem);
         }
 
         function toggleCompleted() { showAll = !showAll; render(); }
 
         async function setupCloud() {
-            const t = prompt("GitHub Token:", cloudConfig.token), g = prompt("Gist ID:", cloudConfig.gistId);
-            if (t !== null && g !== null) { 
-                cloudConfig = { token: t, gistId: g }; 
+            const gt = prompt("GitHub Token:", cloudConfig.token);
+            const gi = prompt("Gist ID:", cloudConfig.gistId);
+            const it = prompt("IGDB Token (to restore Games search):", localStorage.getItem('igdb_token') || "");
+            
+            if (gt !== null && gi !== null) { 
+                cloudConfig = { token: gt, gistId: gi }; 
                 localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); 
+                if (it) localStorage.setItem('igdb_token', it);
                 await pullFromCloud();
             }
         }
@@ -205,7 +215,7 @@
                 if (list.length === 0) return;
                 const isCol = collapsed[key];
                 let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-4 cursor-pointer">
-                    <h2 class="text-xs font-black tracking-widest">${label}</h2></div>
+                    <h2 class="text-xs font-black tracking-widest">${label} ${isCol ? '⊕' : ''}</h2></div>
                     <div style="display:${isCol?'none':'block'}" class="space-y-3">`;
                 list.forEach(i => {
                     const hasNotes = i.notes && i.notes.length > 0;
@@ -215,7 +225,6 @@
             });
         }
         
-        // Initial Startup
         render();
         pullFromCloud();
     </script>
