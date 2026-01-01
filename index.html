@@ -15,8 +15,8 @@
         :root { --bg: #e6faff; }
         body { background-color: var(--bg) !important; color: #1e293b; font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; }
         
-        /* High Contrast Category Headers */
-        h2 { color: #000000 !important; font-weight: 900 !important; text-transform: uppercase; letter-spacing: 0.1em; }
+        /* High Contrast Category Headers - Darker & Heavier */
+        h2 { color: #000000 !important; font-weight: 950 !important; text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.85rem; }
 
         .media-card { position: relative; border: 1px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .priority-bg-1 { background: linear-gradient(135deg, rgba(153, 27, 27, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); }
@@ -31,7 +31,8 @@
         .category-watermark { position: absolute; top: 2px; right: 8px; font-size: 2.8rem; font-weight: 950; opacity: 0.1; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; line-height: 1; color: white; }
         .glass { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         
-        #status-log { font-family: monospace; font-size: 10px; color: #1e40af; text-align: center; margin-top: 8px; font-weight: bold; }
+        /* Status Log updated to White */
+        #status-log { font-family: monospace; font-size: 10px; color: #ffffff; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
         
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
         .syncing #vault-logo { animation: pulse 1s infinite; }
@@ -80,7 +81,6 @@
     </div>
 
     <script>
-        // Register your external sw.js
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(() => {
                 console.log("Vault Service Worker Active");
