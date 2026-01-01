@@ -21,6 +21,27 @@
         #status-log { font-family: monospace; font-size: 10px; color: #64748b; text-align: center; margin-top: 8px; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
         .syncing #vault-logo { animation: pulse 1s infinite; }
+        
+        .notes-area { 
+            background: rgba(0,0,0,0.3); 
+            border: 1px solid rgba(255,255,255,0.05); 
+            color: #94a3b8; 
+            font-size: 11px; 
+            width: 100%; 
+            border-radius: 6px; 
+            padding: 0; 
+            outline: none; 
+            resize: none; 
+            overflow: hidden;
+            height: 0;
+            transition: padding 0.2s, margin 0.2s;
+        }
+        .notes-area:focus, .notes-area:not(:placeholder-shown) {
+            height: auto;
+            min-height: 40px;
+            padding: 8px;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
@@ -52,7 +73,7 @@
                         <option value="4">Low</option>
                     </select>
                 </div>
-                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white shadow-lg active:scale-95 transition-transform">Add Entry</button>
+                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white">Add Entry</button>
                 <div id="status-log">System Ready</div>
             </div>
         </div>
@@ -116,28 +137,18 @@
         }
 
         async function hltbSearchAggressive(originalTitle) {
-            // Clean title of non-alphanumeric (keep spaces)
             const clean = originalTitle.replace(/[^a-zA-Z0-9\s]/g, '').trim();
             const words = clean.split(/\s+/);
-            
-            // Iterate backwards from full title to first word
             for (let i = words.length; i > 0; i--) {
                 const query = words.slice(0, i).join(" ");
-                logStatus(`HLTB: ${query}...`);
                 try {
                     const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            searchType: "games", 
-                            searchTerms: query.split(" "), 
-                            searchPage: 1, size: 5, use_fuzzy: true 
-                        })
+                        body: JSON.stringify({ searchType: "games", searchTerms: query.split(" "), searchPage: 1, size: 5, use_fuzzy: true })
                     });
                     const d = await res.json();
-                    if (d.data?.[0]?.comp_main > 0) {
-                        return Math.round(d.data[0].comp_main / 3600) + 'h';
-                    }
+                    if (d.data?.[0]?.comp_main > 0) return Math.round(d.data[0].comp_main / 3600) + 'h';
                 } catch(e) { continue; }
             }
             return '--';
@@ -194,11 +205,21 @@
                 if(confirm("Authorize Twitch?")) window.location.href = authUrl;
                 return;
             }
-            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025', runtime: '--' };
+            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025', runtime: '--', notes: '' };
             items.push(newItem);
             document.getElementById('title').value = '';
             render();
             fetchMetadata(newItem);
+        }
+
+        function autoExpand(el, id) {
+            el.style.height = 'inherit';
+            el.style.height = el.scrollHeight + 'px';
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.notes = el.value;
+                localStorage.setItem('media_v1', JSON.stringify(items));
+            }
         }
 
         function render() {
@@ -228,6 +249,13 @@
                             </div>
                             <span class="font-mono text-xl text-sky-400 font-black">${i.score}</span>
                         </div>
+                        <textarea 
+                            class="notes-area relative z-10" 
+                            placeholder="Add notes..." 
+                            oninput="autoExpand(this, ${i.id})"
+                            onblur="save()"
+                            style="${i.notes ? 'height:auto; min-height:40px; padding:8px; margin-top:12px;' : ''}"
+                        >${i.notes || ''}</textarea>
                         <div class="flex gap-2 mt-4 relative z-10">
                             <select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 outline-none">
                                 ${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}
