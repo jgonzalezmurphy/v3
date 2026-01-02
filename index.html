@@ -15,8 +15,11 @@
         body { background-color: var(--bg) !important; color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; transition: background 0.3s; }
         
         .vault-logo { font-size: 2.5rem; font-weight: 1000; color: var(--header) !important; font-style: italic; letter-spacing: -0.07em; line-height: 1; text-transform: uppercase; cursor: pointer; user-select: none; }
-        h2 { color: var(--header) !important; font-weight: 950 !important; text-transform: uppercase; letter-spacing: 0.15em; font-size: 1.1rem !important; margin-top: 1.8rem; margin-bottom: 0.8rem; }
+        h2 { color: var(--header) !important; font-weight: 950 !important; text-transform: uppercase; letter-spacing: 0.15em; font-size: 1.1rem !important; margin: 0; }
         
+        .icon-btn { color: var(--header) !important; transition: transform 0.2s; }
+        .icon-btn:active { transform: scale(0.9); }
+
         .media-card { position: relative; border: 1px solid var(--card-border); backdrop-filter: blur(20px); border-radius: 12px; overflow: hidden; margin-bottom: 0.75rem; box-shadow: 0 6px 15px rgba(0,0,0,0.25); z-index: 10; }
         .glass { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 50; }
         
@@ -43,13 +46,16 @@
         
         #settings-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         #settings-menu.active { display: flex; }
+        
+        .pri-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; transition: all 0.2s; }
+        .pri-dot:hover { transform: scale(1.2); }
     </style>
 </head>
 <body id="body-root">
     <div class="max-w-3xl mx-auto pb-32">
         <header class="mb-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div id="sync-icon" onclick="pullFromCloud()" class="cursor-pointer text-black dark:text-white">
+                <div id="sync-icon" onclick="pullFromCloud()" class="icon-btn cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><polyline points="22 4 22 10 16 10"></polyline></svg>
                 </div>
                 <div>
@@ -57,7 +63,7 @@
                     <p class="text-[10px] uppercase font-[1000] tracking-[0.25em] text-black dark:text-white">Archive 2026</p>
                 </div>
             </div>
-            <button onclick="document.getElementById('settings-menu').classList.toggle('active')" class="p-2 text-black dark:text-white">
+            <button onclick="document.getElementById('settings-menu').classList.toggle('active')" class="icon-btn p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
         </header>
@@ -81,7 +87,10 @@
                         <option value="priority">Sort: Pri</option><option value="recent">Sort: New</option><option value="rating">Sort: Sc</option><option value="release">Sort: Yr</option><option value="manual">Sort: Man</option>
                     </select>
                 </div>
-                <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 border-b-4 border-blue-800">Add Custom</button>
+                <div class="flex gap-2">
+                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-4 rounded-xl font-black text-lg uppercase shadow-lg active:scale-95 border-b-4 border-purple-800 w-1/4 flex items-center justify-center">🎲</button>
+                    <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 border-b-4 border-blue-800 flex-1">Add Custom</button>
+                </div>
                 <div id="status-log" class="text-white text-[10px] text-center font-bold uppercase mt-2">Ready</div>
             </div>
         </div>
@@ -103,15 +112,65 @@
     </div>
     <input type="file" id="importFile" class="hidden" onchange="importBackup(this)">
 
+    <div id="random-modal" onclick="this.classList.remove('active')" class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-md hidden flex-col items-center justify-center p-6 cursor-pointer transition-opacity duration-300">
+        <div id="random-content" class="text-center transform scale-90 transition-transform duration-300 w-full max-w-lg"></div>
+        <div class="mt-12 text-white/50 text-xs font-mono animate-pulse">TAP ANYWHERE TO CLOSE</div>
+    </div>
+
     <script>
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c", CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp", CLIENT_SECRET = "rxwdetly09vb5pq41mx5ola1k1w2rm";
-        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, catOrder = JSON.parse(localStorage.getItem('vault_cat_order')) || ['vidya', 'movie', 'tv'], searchTimeout;
+        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, catOrder = JSON.parse(localStorage.getItem('vault_cat_order')) || ['vidya', 'movie', 'tv'], searchTimeout, hiddenPriorities = JSON.parse(localStorage.getItem('vault_hidden_pri')) || { vidya:[], movie:[], tv:[] };
         if(localStorage.getItem('vault_dark') === 'true') document.body.classList.add('dark-mode');
         document.getElementById('sort-order').value = localStorage.getItem('vault_sort') || 'priority';
 
         function logStatus(m) { document.getElementById('status-log').innerText = m; }
         function setSyncing(state) { state ? document.body.classList.add('syncing') : document.body.classList.remove('syncing'); }
         function toggleTheme() { document.body.classList.toggle('dark-mode'); localStorage.setItem('vault_dark', document.body.classList.contains('dark-mode')); render(); }
+        
+        function togglePriority(cat, p) {
+            const arr = hiddenPriorities[cat];
+            if(arr.includes(p)) hiddenPriorities[cat] = arr.filter(x => x !== p);
+            else arr.push(p);
+            localStorage.setItem('vault_hidden_pri', JSON.stringify(hiddenPriorities));
+            render();
+        }
+
+        function pickRandom() {
+            // Filter categories that are NOT collapsed
+            const activeCats = catOrder.filter(cat => !collapsed[cat]);
+            
+            // Initial pool: Priority 1 or 2, not done
+            let pool = items.filter(i => i.status !== 'done' && (i.priority === 1 || i.priority === 2));
+            
+            // Narrow to expanded categories if any are expanded
+            const filteredPool = pool.filter(i => activeCats.includes(i.category));
+            
+            // If the filtered pool has items, use it. Otherwise, use the general pool.
+            const finalPool = filteredPool.length > 0 ? filteredPool : pool;
+
+            if (finalPool.length === 0) { alert("No Priority 1 or 2 items found to roll!"); return; }
+            
+            const winner = finalPool[Math.floor(Math.random() * finalPool.length)];
+            const modal = document.getElementById('random-modal');
+            const content = document.getElementById('random-content');
+            
+            const colors = {1: 'text-red-500', 2: 'text-orange-500'};
+            const labels = {vidya: 'PLAY THIS', movie: 'WATCH THIS', tv: 'BINGE THIS'};
+            
+            content.innerHTML = `
+                <div class="text-[10px] font-mono text-white/40 mb-4 tracking-[0.5em] uppercase">THE VAULT HAS SPOKEN</div>
+                <div class="text-4xl md:text-6xl font-[1000] text-white uppercase leading-none mb-6 break-words">${winner.title}</div>
+                <div class="inline-block border border-white/20 px-4 py-2 rounded-lg bg-white/5 backdrop-blur-sm">
+                    <div class="text-lg font-bold ${colors[winner.priority]} uppercase tracking-[0.2em]">${winner.priority === 1 ? 'IMMEDIATE' : 'HIGH'} PRIORITY</div>
+                </div>
+                <div class="mt-6 text-sm font-bold text-white/60 uppercase tracking-widest">${labels[winner.category] || 'DO THIS'}</div>
+            `;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex', 'active');
+            setTimeout(() => content.classList.replace('scale-90', 'scale-100'), 10);
+        }
+
         async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); if (cloudConfig.token && cloudConfig.gistId) { setSyncing(true); try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); logStatus("Cloud Saved"); } catch(e) { logStatus("Sync Failed"); } finally { setSyncing(false); } } }
         async function pullFromCloud() { if (!cloudConfig.token || !cloudConfig.gistId) return; setSyncing(true); try { const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } }); const data = await res.json(); if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); localStorage.setItem('media_v1', JSON.stringify(items)); render(); logStatus("Cloud Synced"); } } catch(e) { logStatus("Offline"); } finally { setSyncing(false); } }
         async function refreshIGDBToken() { try { const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://id.twitch.tv/oauth2/token')}`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials` }); const d = await res.json(); if (d.access_token) { localStorage.setItem('igdb_token', d.access_token); return d.access_token; } } catch(e) { return null; } }
@@ -126,7 +185,7 @@
                 let results = [];
                 if (cat === 'vidya') {
                     let token = localStorage.getItem('igdb_token') || await refreshIGDBToken();
-                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `fields name, first_release_date, cover.url; search "${title}"; limit 8;` });
+                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `fields name, first_release_date, cover.url; search "${title}"; limit 25;` });
                     const d = await r.json(); if(d) results = d.map(g => ({ title: g.name, year: g.first_release_date ? new Date(g.first_release_date*1000).getFullYear() : 'TBA', id: g.id, img: g.cover ? g.cover.url.replace('t_thumb', 't_cover_small') : '' }));
                 } else {
                     const r = await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
@@ -175,10 +234,19 @@
             container.innerHTML = '';
             catOrder.forEach(key => {
                 let list = items.filter(i => i.category === key && i.title.toLowerCase().includes(filter));
-                list = list.filter(i => i.status !== 'done');
+                list = list.filter(i => i.status !== 'done' && !hiddenPriorities[key].includes(i.priority));
                 if (s !== 'manual') list.sort((a,b) => { if(s==='priority') return a.priority - b.priority; if(s==='recent') return b.id - a.id; if(s==='rating') return b.score - a.score; if(s==='release') return parseInt(b.release) - parseInt(a.release); return 0; });
-                if (list.length === 0 && !filter) return;
-                let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-2 cursor-pointer"><h2>${cats[key]} ${collapsed[key]?'⊕':''}</h2></div><div style="display:${collapsed[key]?'none':'block'}" class="space-y-2">`;
+                
+                let pToggles = '<div class="flex gap-2 ml-4 relative z-50" onclick="event.stopPropagation()">';
+                [1,2,3,4].forEach(p => {
+                    const isHidden = hiddenPriorities[key].includes(p);
+                    const colors = {1:'bg-red-600', 2:'bg-orange-600', 3:'bg-blue-600', 4:'bg-slate-600'};
+                    pToggles += `<div onclick="togglePriority('${key}', ${p})" class="pri-dot ${colors[p]} ${isHidden ? 'opacity-20 grayscale' : 'opacity-100 shadow-[0_0_8px_currentColor]'}"></div>`;
+                });
+                pToggles += '</div>';
+
+                if (list.length === 0 && !filter && hiddenPriorities[key].length === 0) return;
+                let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[key]} ${collapsed[key]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[key]?'none':'block'}" class="space-y-2">`;
                 list.forEach(i => {
                     section += `<div class="media-card card-${key} priority-bg-${i.priority} p-3">${s==='manual'?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-black text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white/70 font-bold uppercase tracking-wider">${i.genre} • ${i.release}${i.category==='vidya'?'':` • ${i.runtime}`}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title + ' official trailer')}', '_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="confirmDelete(this, ${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10 transition-all">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this, ${i.id})" onblur="save()">${i.notes || ''}</textarea></div>`;
                 });
