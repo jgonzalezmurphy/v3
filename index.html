@@ -10,18 +10,19 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text y='75' x='20' font-family='Arial' font-weight='bold' font-size='80' fill='white'>V</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --bg: #e6faff; --text: #000000; --header: #000000; --card-border: rgba(0,0,0,0.3); --glass: rgba(15, 23, 42, 0.98); --notes-btn: #0284c7; }
-        body.dark-mode { --bg: #020617; --text: #cbd5e1; --header: #ffffff; --card-border: rgba(255,255,255,0.1); --glass: rgba(0, 0, 0, 0.95); --notes-btn: #38bdf8; }
+        :root { --bg: #e6faff; --text: #000000; --header: #000000; --card-border: rgba(0,0,0,0.3); --glass: rgba(15, 23, 42, 0.98); --notes-btn: #0369a1; --subtext: #475569; }
+        body.dark-mode { --bg: #020617; --text: #cbd5e1; --header: #ffffff; --card-border: rgba(255,255,255,0.1); --glass: rgba(0, 0, 0, 0.95); --notes-btn: #38bdf8; --subtext: #94a3b8; }
         body { background-color: var(--bg) !important; color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; transition: background 0.3s; }
         
         .vault-logo { font-size: 2.5rem; font-weight: 1000; color: var(--header) !important; font-style: italic; letter-spacing: -0.07em; line-height: 1; text-transform: uppercase; cursor: pointer; user-select: none; }
+        .archive-text { color: var(--subtext) !important; font-size: 10px; font-weight: 1000; text-transform: uppercase; letter-spacing: 0.25em; }
         h2 { color: var(--header) !important; font-weight: 950 !important; text-transform: uppercase; letter-spacing: 0.15em; font-size: 1.1rem !important; margin: 0; }
         
         .icon-btn { color: var(--header) !important; transition: transform 0.2s; }
         .icon-btn:active { transform: scale(0.9); }
 
         .media-card { position: relative; border: 1px solid var(--card-border); backdrop-filter: blur(20px); border-radius: 12px; overflow: hidden; margin-bottom: 0.75rem; box-shadow: 0 6px 15px rgba(0,0,0,0.25); z-index: 10; }
-        .glass { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 50; }
+        .glass { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 40; }
         
         .priority-bg-1 { background: linear-gradient(135deg, #b91c1c 0%, #0f172a 100%); }
         .priority-bg-2 { background: linear-gradient(135deg, #b45309 0%, #0f172a 100%); }
@@ -47,7 +48,7 @@
         #settings-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         #settings-menu.active { display: flex; }
         
-        .pri-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; transition: all 0.2s; }
+        .pri-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; transition: all 0.2s; box-shadow: none !important; }
         .pri-dot:hover { transform: scale(1.2); }
     </style>
 </head>
@@ -60,7 +61,7 @@
                 </div>
                 <div>
                     <h1 class="vault-logo" onclick="toggleTheme()">VAULT</h1>
-                    <p class="text-[10px] uppercase font-[1000] tracking-[0.25em] text-black dark:text-white">Archive 2026</p>
+                    <p class="archive-text">Archive 2026</p>
                 </div>
             </div>
             <button onclick="document.getElementById('settings-menu').classList.toggle('active')" class="icon-btn p-2">
@@ -72,8 +73,8 @@
 
         <div class="glass p-5 rounded-3xl mb-10 shadow-2xl">
             <div class="grid grid-cols-1 gap-4">
-                <div class="relative">
-                    <input id="title" type="text" autocomplete="off" placeholder="Entry Title..." oninput="debounceSearch()" class="bg-black/60 border border-white/20 p-4 rounded-xl text-white w-full outline-none placeholder-white/60 font-bold">
+                <div class="relative z-[60]">
+                    <input id="title" type="text" autocomplete="off" placeholder="Enter Title..." oninput="debounceSearch()" class="bg-black/60 border border-white/20 p-4 rounded-xl text-white w-full outline-none placeholder-white/60 font-bold">
                     <div id="live-results"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
@@ -88,8 +89,8 @@
                     </select>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-4 rounded-xl font-black text-lg uppercase shadow-lg active:scale-95 border-b-4 border-purple-800 w-1/4 flex items-center justify-center">🎲</button>
-                    <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 border-b-4 border-blue-800 flex-1">Add Custom</button>
+                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-3 rounded-xl font-black text-sm uppercase shadow-lg active:scale-95 border-b-4 border-purple-800 w-16 flex items-center justify-center">🎲</button>
+                    <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 border-b-4 border-blue-800 flex-1">Add</button>
                 </div>
                 <div id="status-log" class="text-white text-[10px] text-center font-bold uppercase mt-2">Ready</div>
             </div>
@@ -112,8 +113,8 @@
     </div>
     <input type="file" id="importFile" class="hidden" onchange="importBackup(this)">
 
-    <div id="random-modal" onclick="this.classList.remove('active')" class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-md hidden flex-col items-center justify-center p-6 cursor-pointer transition-opacity duration-300">
-        <div id="random-content" class="text-center transform scale-90 transition-transform duration-300 w-full max-w-lg"></div>
+    <div id="random-modal" onclick="this.style.display='none'" class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 cursor-pointer" style="display: none;">
+        <div id="random-content" class="text-center w-full max-w-lg"></div>
         <div class="mt-12 text-white/50 text-xs font-mono animate-pulse">TAP ANYWHERE TO CLOSE</div>
     </div>
 
@@ -136,39 +137,18 @@
         }
 
         function pickRandom() {
-            // Filter categories that are NOT collapsed
             const activeCats = catOrder.filter(cat => !collapsed[cat]);
-            
-            // Initial pool: Priority 1 or 2, not done
             let pool = items.filter(i => i.status !== 'done' && (i.priority === 1 || i.priority === 2));
-            
-            // Narrow to expanded categories if any are expanded
             const filteredPool = pool.filter(i => activeCats.includes(i.category));
-            
-            // If the filtered pool has items, use it. Otherwise, use the general pool.
             const finalPool = filteredPool.length > 0 ? filteredPool : pool;
-
             if (finalPool.length === 0) { alert("No Priority 1 or 2 items found to roll!"); return; }
-            
             const winner = finalPool[Math.floor(Math.random() * finalPool.length)];
             const modal = document.getElementById('random-modal');
             const content = document.getElementById('random-content');
-            
             const colors = {1: 'text-red-500', 2: 'text-orange-500'};
             const labels = {vidya: 'PLAY THIS', movie: 'WATCH THIS', tv: 'BINGE THIS'};
-            
-            content.innerHTML = `
-                <div class="text-[10px] font-mono text-white/40 mb-4 tracking-[0.5em] uppercase">THE VAULT HAS SPOKEN</div>
-                <div class="text-4xl md:text-6xl font-[1000] text-white uppercase leading-none mb-6 break-words">${winner.title}</div>
-                <div class="inline-block border border-white/20 px-4 py-2 rounded-lg bg-white/5 backdrop-blur-sm">
-                    <div class="text-lg font-bold ${colors[winner.priority]} uppercase tracking-[0.2em]">${winner.priority === 1 ? 'IMMEDIATE' : 'HIGH'} PRIORITY</div>
-                </div>
-                <div class="mt-6 text-sm font-bold text-white/60 uppercase tracking-widest">${labels[winner.category] || 'DO THIS'}</div>
-            `;
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex', 'active');
-            setTimeout(() => content.classList.replace('scale-90', 'scale-100'), 10);
+            content.innerHTML = `<div class="text-[10px] font-mono text-white/40 mb-4 tracking-[0.5em] uppercase">THE VAULT HAS SPOKEN</div><div class="text-4xl md:text-6xl font-[1000] text-white uppercase leading-none mb-6 break-words">${winner.title}</div><div class="inline-block border border-white/20 px-4 py-2 rounded-lg bg-white/5 backdrop-blur-sm"><div class="text-lg font-bold ${colors[winner.priority]} uppercase tracking-[0.2em]">${winner.priority === 1 ? 'IMMEDIATE' : 'HIGH'} PRIORITY</div></div><div class="mt-6 text-sm font-bold text-white/60 uppercase tracking-widest">${labels[winner.category] || 'DO THIS'}</div>`;
+            modal.style.display = 'flex';
         }
 
         async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); if (cloudConfig.token && cloudConfig.gistId) { setSyncing(true); try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); logStatus("Cloud Saved"); } catch(e) { logStatus("Sync Failed"); } finally { setSyncing(false); } } }
@@ -237,11 +217,11 @@
                 list = list.filter(i => i.status !== 'done' && !hiddenPriorities[key].includes(i.priority));
                 if (s !== 'manual') list.sort((a,b) => { if(s==='priority') return a.priority - b.priority; if(s==='recent') return b.id - a.id; if(s==='rating') return b.score - a.score; if(s==='release') return parseInt(b.release) - parseInt(a.release); return 0; });
                 
-                let pToggles = '<div class="flex gap-2 ml-4 relative z-50" onclick="event.stopPropagation()">';
+                let pToggles = '<div class="flex gap-2 ml-4 relative z-30" onclick="event.stopPropagation()">';
                 [1,2,3,4].forEach(p => {
                     const isHidden = hiddenPriorities[key].includes(p);
                     const colors = {1:'bg-red-600', 2:'bg-orange-600', 3:'bg-blue-600', 4:'bg-slate-600'};
-                    pToggles += `<div onclick="togglePriority('${key}', ${p})" class="pri-dot ${colors[p]} ${isHidden ? 'opacity-20 grayscale' : 'opacity-100 shadow-[0_0_8px_currentColor]'}"></div>`;
+                    pToggles += `<div onclick="togglePriority('${key}', ${p})" class="pri-dot ${colors[p]} ${isHidden ? 'opacity-20 grayscale' : 'opacity-100'}"></div>`;
                 });
                 pToggles += '</div>';
 
@@ -254,7 +234,7 @@
             });
         }
         renderSettings(); render(); pullFromCloud();
-        document.addEventListener('click', e => { if (!e.target.closest('.relative')) document.getElementById('live-results').classList.remove('active'); });
+        document.addEventListener('click', e => { if (!e.target.closest('.relative')) { const lr = document.getElementById('live-results'); if(lr) lr.classList.remove('active'); } });
     </script>
 </body>
 </html>
