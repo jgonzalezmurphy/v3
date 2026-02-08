@@ -9,32 +9,48 @@
         :root{--bg:#e6faff;--text:#000;--header:#000;--card-border:rgba(0,0,0,.3);--glass:rgba(15,23,42,.98);--notes-btn:#38bdf8;--subtext:#475569}
         body.dark-mode{--bg:#020617;--text:#cbd5e1;--header:#fff;--card-border:rgba(255,255,255,.1);--glass:rgba(0,0,0,.95);--notes-btn:#38bdf8;--subtext:#94a3b8}
         body{background-color:var(--bg)!important;color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1rem}
-        .max-w-3xl{max-width:48rem;margin:0 auto}.flex{display:flex}.grid{display:grid}.grid-cols-3{grid-template-columns:repeat(3,1fr)}
-        .gap-2{gap:.5rem}.mb-6{margin-bottom:1.5rem}.mt-6{margin-top:1.5rem}.mt-2{margin-top:.5rem}
-        .rounded-xl{border-radius:.75rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
+        .max-w-3xl{max-width:48rem;margin:0 auto}.flex{display:flex}.justify-between{justify-content:space-between}.items-center{align-items:center}.grid{display:grid}.grid-cols-3{grid-template-columns:repeat(3,1fr)}
+        .gap-2{gap:.5rem}.mb-6{margin-bottom:1.5rem}.mt-6{margin-top:1.5rem}.mt-2{margin-top:.5rem}.gap-3{gap:.75rem}
+        .rounded-3xl{border-radius:1.5rem}.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
         .vault-logo{font-size:2.5rem;font-weight:1000;color:var(--header);font-style:italic;letter-spacing:-.07em;text-transform:uppercase;cursor:pointer}
-        .adaptive-bg { background-color: var(--bg); transition: background-color 0.3s; border-radius: 12px; padding: 10px; border:1px solid var(--card-border); color: var(--header); font-weight:900; font-size:10px}
+        .adaptive-bg { background-color: var(--bg); border-radius: 12px; padding: 10px; border:1px solid var(--card-border); color: var(--header); font-weight:900; font-size:10px; cursor:pointer}
         .thin-search{background:0 0;border:none;border-bottom:3px solid var(--header);width:100%;font-size:14px;padding:10px 0;outline:0;color:var(--header);font-weight:950;margin-bottom:1.5rem}
         .glass{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);padding:1.25rem;position:relative}
-        .media-card{position:relative;border:1px solid var(--card-border);border-radius:12px;padding:1rem;margin-bottom:.75rem;color:white;overflow:hidden}
+        .media-card{position:relative;border:1px solid var(--card-border);border-radius:12px;padding:1rem 1rem 1rem 1.5rem;margin-bottom:.75rem;color:white;overflow:hidden}
+        .cat-indicator{position:absolute;left:0;top:0;bottom:0;width:6px}
+        .cat-vidya{background:#22d3ee}.cat-movie{background:#a855f7}.cat-tv{background:#4ade80}
         .priority-bg-1{background:linear-gradient(135deg,#b91c1c,#0f172a)}.priority-bg-2{background:linear-gradient(135deg,#b45309,#0f172a)}.priority-bg-3{background:linear-gradient(135deg,#1d4ed8,#0f172a)}.priority-bg-4{background:#0f172a}
         #live-results{position:absolute;top:100%;left:0;right:0;background:#0f172a;border:1px solid rgba(255,255,255,0.2);z-index:1000;display:none;max-height:300px;overflow-y:auto;border-radius:0 0 12px 12px}
-        #live-results.active{display:block}.live-item{padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;display:flex;align-items:center;gap:12px;color:white}
-        .live-img{width:40px;height:55px;object-fit:cover;background:#334155;border-radius:4px}
-        .notes-trigger{font-size:10px;font-weight:1000;color:var(--notes-btn);letter-spacing:.05em;cursor:pointer;text-transform:uppercase;text-decoration:underline}
-        .notes-area{background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;width:100%;border-radius:6px;outline:0;resize:none;overflow:hidden;height:0;opacity:0;transition:all 0.2s}
+        #live-results.active{display:block}.live-item{padding:12px;cursor:pointer;display:flex;align-items:center;gap:12px;color:white;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .live-img{width:40px;height:55px;object-fit:cover;border-radius:4px}
+        .notes-trigger{font-size:10px;font-weight:1000;color:var(--notes-btn);cursor:pointer;text-transform:uppercase;text-decoration:underline}
+        .notes-area{background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;width:100%;border-radius:6px;outline:0;resize:none;height:0;opacity:0;transition:all 0.2s}
         .notes-area.active{height:auto;min-height:45px;padding:10px;margin-top:10px;opacity:1}
-        .card-btn-dark{text-transform:uppercase; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.1); font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px; outline: none;}
+        .card-btn-dark{text-transform:uppercase; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.1); font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px}
         #settings-menu{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:2000;display:none;align-items:center;justify-content:center}
         #settings-menu.active{display:flex}
+        .filter-chip{padding:4px 8px;border-radius:6px;font-size:10px;font-weight:900;cursor:pointer;border:1px solid var(--card-border);opacity:0.4}
+        .filter-chip.active{opacity:1;background:var(--header);color:var(--bg)}
+        #sync-status{font-size:10px;font-weight:900;color:#4ade80;margin-left:10px;display:none}
     </style>
 </head>
 <body>
     <div class="max-w-3xl">
         <header class="flex justify-between items-center mb-6">
-            <h1 class="vault-logo" onclick="toggleTheme()">VAULT</h1>
+            <div class="flex items-center">
+                <h1 class="vault-logo" onclick="toggleTheme()">VAULT</h1>
+                <span id="sync-status">● SYNCING</span>
+            </div>
             <button onclick="document.getElementById('settings-menu').classList.toggle('active')" class="adaptive-bg">SETTINGS</button>
         </header>
+
+        <div class="flex gap-2 mb-4 overflow-x-auto">
+            <div onclick="togglePriorityFilter(1)" id="f-1" class="filter-chip priority-bg-1 active">IMM</div>
+            <div onclick="togglePriorityFilter(2)" id="f-2" class="filter-chip priority-bg-2 active">HI</div>
+            <div onclick="togglePriorityFilter(3)" id="f-3" class="filter-chip priority-bg-3 active">MED</div>
+            <div onclick="togglePriorityFilter(4)" id="f-4" class="filter-chip priority-bg-4 active">LOW</div>
+            <button onclick="pickRandom()" class="adaptive-bg" style="margin-left:auto">RANDOM</button>
+        </div>
 
         <input id="global-search" type="text" class="thin-search" placeholder="FILTER VAULT..." oninput="render()">
 
@@ -56,8 +72,11 @@
     <div id="settings-menu">
         <div style="background:#0f172a;padding:2rem;border-radius:24px;width:90%;max-width:400px;border:1px solid rgba(255,255,255,0.1)">
             <button onclick="setupCloud()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">CLOUD SYNC</button>
-            <button onclick="downloadBackup()" style="width:100%;padding:1rem;margin-bottom:1rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">EXPORT DATA</button>
+            <button onclick="downloadBackup()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">EXPORT DATA</button>
+            <button onclick="document.getElementById('import-input').click()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">IMPORT DATA</button>
+            <button onclick="moveCategory()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#1e293b;color:white;border:none;border-radius:12px;font-weight:900">ROTATE CATEGORIES</button>
             <button onclick="document.getElementById('settings-menu').classList.remove('active')" style="width:100%;padding:1rem;background:white;color:black;border:none;border-radius:12px;font-weight:900">CLOSE</button>
+            <input type="file" id="import-input" style="display:none" onchange="importData(this)">
         </div>
     </div>
 
@@ -65,11 +84,75 @@
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
         const RAWG_KEY = "40dcecf909e541df8eafbb648d749512";
         
-        let items=JSON.parse(localStorage.getItem('media_v1'))||[],searchTimeout,deleteTimers={};
+        let items=JSON.parse(localStorage.getItem('media_v1'))||[];
+        let catOrder=JSON.parse(localStorage.getItem('cat_order'))||['vidya','movie','tv'];
+        let hiddenPriorities=JSON.parse(localStorage.getItem('hidden_p'))||[];
         let cloudConfig=JSON.parse(localStorage.getItem('vault_cloud'))||{token:'',gistId:''};
+        let searchTimeout, deleteTimers={};
 
         function toggleTheme(){document.body.classList.toggle('dark-mode');localStorage.setItem('vault_dark',document.body.classList.contains('dark-mode'))}
         if(localStorage.getItem('vault_dark')==='true')document.body.classList.add('dark-mode');
+
+        async function save(){
+            localStorage.setItem('media_v1',JSON.stringify(items));
+            render();
+            if(cloudConfig.token && cloudConfig.gistId){
+                document.getElementById('sync-status').style.display = 'inline';
+                try {
+                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{
+                        method:"PATCH",
+                        headers:{"Authorization":`token ${cloudConfig.token}`},
+                        body:JSON.stringify({files:{"vault.json":{content:JSON.stringify(items)}}})
+                    });
+                } catch(e) { console.error("Cloud save failed"); }
+                setTimeout(() => document.getElementById('sync-status').style.display = 'none', 800);
+            }
+        }
+
+        async function pullFromCloud(){
+            if(!cloudConfig.token||!cloudConfig.gistId)return;
+            try{
+                const res=await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{headers:{"Authorization":`token ${cloudConfig.token}`}});
+                const d=await res.json();
+                if(d.files?.["vault.json"]){items=JSON.parse(d.files["vault.json"].content);render();}
+            }catch(e){console.error("Cloud pull failed");}
+        }
+
+        function setupCloud(){
+            const gt=prompt("GitHub Token:",cloudConfig.token);
+            const gi=prompt("Gist ID:",cloudConfig.gistId);
+            if(gt && gi){
+                cloudConfig={token:gt,gistId:gi};
+                localStorage.setItem('vault_cloud',JSON.stringify(cloudConfig));
+                pullFromCloud();
+            }
+        }
+
+        function togglePriorityFilter(p){
+            if(hiddenPriorities.includes(p)) hiddenPriorities = hiddenPriorities.filter(x=>x!==p);
+            else hiddenPriorities.push(p);
+            localStorage.setItem('hidden_p', JSON.stringify(hiddenPriorities));
+            render();
+        }
+
+        function pickRandom(){
+            const filter=document.getElementById('global-search').value.toLowerCase();
+            const visible = items.filter(i => 
+                catOrder.includes(i.category) && 
+                !hiddenPriorities.includes(i.priority) && 
+                i.status === 'to-do' &&
+                i.title.toLowerCase().includes(filter)
+            );
+            if(!visible.length) return alert("No visible entries match your current filters!");
+            const pick = visible[Math.floor(Math.random()*visible.length)];
+            alert(`RANDOM PICK: ${pick.title.toUpperCase()}`);
+        }
+
+        function moveCategory(){
+            catOrder.push(catOrder.shift());
+            localStorage.setItem('cat_order', JSON.stringify(catOrder));
+            render();
+        }
 
         function debounceSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(performLiveSearch,400)}
 
@@ -95,7 +178,7 @@
                     el.onclick=()=>processSelection(cat,res);
                     dropdown.appendChild(el);
                 });
-            } catch(e){dropdown.innerHTML='<div class="p-3 text-red-400">Error: Check API Key</div>'}
+            } catch(e){dropdown.innerHTML='<div class="p-3 text-red-400">Search Error</div>'}
         }
 
         async function processSelection(cat,res){
@@ -114,58 +197,22 @@
             document.getElementById('title').value='';save();
         }
 
-        async function save(){
-            localStorage.setItem('media_v1',JSON.stringify(items));
-            render();
-            if(cloudConfig.token && cloudConfig.gistId){
-                try {
-                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{
-                        method:"PATCH",
-                        headers:{"Authorization":`token ${cloudConfig.token}`},
-                        body:JSON.stringify({files:{"vault.json":{content:JSON.stringify(items)}}})
-                    });
-                } catch(e) { console.error("Cloud save failed"); }
-            }
-        }
-
-        async function pullFromCloud(){
-            if(!cloudConfig.token||!cloudConfig.gistId)return;
-            try{
-                const res=await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{headers:{"Authorization":`token ${cloudConfig.token}`}});
-                const data=await res.json();
-                if(data.files?.["vault.json"]){items=JSON.parse(data.files["vault.json"].content);render();}
-            }catch(e){console.error("Cloud pull failed");}
-        }
-
-        async function setupCloud(){
-            const gt=prompt("GitHub Token:",cloudConfig.token);
-            const gi=prompt("Gist ID:",cloudConfig.gistId);
-            if(gt !== null && gi !== null){
-                cloudConfig={token:gt,gistId:gi};
-                localStorage.setItem('vault_cloud',JSON.stringify(cloudConfig));
-                await pullFromCloud();
-            }
-        }
-
-        function requestDelete(id, btn) {
-            if(btn.innerText === 'DEL') {
-                btn.innerText = 'SURE?'; btn.style.background = '#dc2626';
-                deleteTimers[id] = setTimeout(() => { btn.innerText = 'DEL'; btn.style.background = ''; }, 2000);
-            } else {
-                clearTimeout(deleteTimers[id]); items = items.filter(z => z.id !== id); save();
-            }
-        }
-
         function render(){
             const container=document.getElementById('tables-container'),filter=document.getElementById('global-search').value.toLowerCase();
             container.innerHTML='';
-            ['vidya','movie','tv'].forEach(cat=>{
-                let list=items.filter(i=>i.category===cat && i.title.toLowerCase().includes(filter));
+            [1,2,3,4].forEach(p => {
+                const btn = document.getElementById(`f-${p}`);
+                if(hiddenPriorities.includes(p)) btn.classList.remove('active');
+                else btn.classList.add('active');
+            });
+            catOrder.forEach(cat=>{
+                let list=items.filter(i=>i.category===cat && i.title.toLowerCase().includes(filter) && !hiddenPriorities.includes(i.priority));
                 if(list.length===0) return;
                 let section=`<h2 class="mt-6">${cat.toUpperCase()}</h2>`;
                 list.forEach(i=>{
                     const pMap={1:'IMM',2:'HI',3:'MED',4:'LOW'};
                     section+=`<div class="media-card priority-bg-${i.priority}">
+                        <div class="cat-indicator cat-${i.category}"></div>
                         <div class="flex justify-between items-start">
                             <div><b style="font-size:14px; text-transform:uppercase">${i.title}</b><br><small style="opacity:0.8">${i.genre} | ${i.release} | ${i.runtime}</small></div>
                             <div class="flex items-center gap-3">
@@ -185,8 +232,19 @@
                 container.innerHTML+=section;
             });
         }
+
+        function requestDelete(id, btn) {
+            if(btn.innerText === 'DEL') {
+                btn.innerText = 'SURE?'; btn.style.background = '#dc2626';
+                deleteTimers[id] = setTimeout(() => { btn.innerText = 'DEL'; btn.style.background = ''; }, 2000);
+            } else {
+                clearTimeout(deleteTimers[id]); items = items.filter(z => z.id !== id); save();
+            }
+        }
+
         function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items));a.download="vault.json";a.click()}
-        
+        function importData(input){const reader=new FileReader();reader.onload=e=>{items=JSON.parse(e.target.result);save()};reader.readAsText(input.files[0])}
+
         render();
         pullFromCloud();
     </script>
