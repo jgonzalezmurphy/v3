@@ -127,7 +127,12 @@
     </div>
 
     <script>
-        const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c", CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp", CLIENT_SECRET = "rxwdetly09vb5pq41mx5ola1k1w2rm";
+        // --- API CONFIGURATION ---
+        const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
+        const CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
+        const CLIENT_SECRET = "96q58dkxsz3cfe853ckpn9opqy6sli"; // <--- UPDATE THIS
+        // -------------------------
+
         let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, catOrder = JSON.parse(localStorage.getItem('vault_cat_order')) || ['vidya', 'movie', 'tv'], searchTimeout, hiddenPriorities = JSON.parse(localStorage.getItem('vault_hidden_pri')) || { vidya:[], movie:[], tv:[] }, showArchive = false;
         if(localStorage.getItem('vault_dark') === 'true') document.body.classList.add('dark-mode');
         document.getElementById('sort-order').value = localStorage.getItem('vault_sort') || 'priority';
@@ -149,31 +154,43 @@
         }
 
         function pickRandom() {
-            // Filter out done items and respect category collapse/hidden priorities
             const pool = items.filter(i => {
                 const isDone = i.status === 'done';
                 const isCatCollapsed = collapsed[i.category];
                 const isPriHidden = hiddenPriorities[i.category]?.includes(i.priority);
                 return !isDone && !isCatCollapsed && !isPriHidden;
             });
-
-            if (pool.length === 0) { alert("No visible items found in the current filters!"); return; }
-            
+            if (pool.length === 0) { alert("No visible items found!"); return; }
             const winner = pool[Math.floor(Math.random() * pool.length)];
             const modal = document.getElementById('random-modal');
             const content = document.getElementById('random-content');
-            
             const priColors = {1: 'text-red-500', 2: 'text-orange-500', 3: 'text-blue-500', 4: 'text-slate-500'};
             const priNames = {1: 'IMMEDIATE', 2: 'HIGH', 3: 'MEDIUM', 4: 'LOW'};
             const labels = {vidya: 'PLAY THIS', movie: 'WATCH THIS', tv: 'BINGE THIS'};
-            
             content.innerHTML = `<div class="text-[10px] font-mono text-white/40 mb-4 tracking-[0.5em] uppercase">THE VAULT HAS SPOKEN</div><div class="text-4xl md:text-6xl font-[1000] text-white uppercase leading-none mb-6 break-words">${winner.title}</div><div class="inline-block border border-white/20 px-4 py-2 rounded-lg bg-white/5 backdrop-blur-sm"><div class="text-lg font-bold ${priColors[winner.priority]} uppercase tracking-[0.2em]">${priNames[winner.priority]} PRIORITY</div></div><div class="mt-6 text-sm font-bold text-white/60 uppercase tracking-widest">${labels[winner.category] || 'DO THIS'}</div>`;
             modal.style.display = 'flex';
         }
 
         async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); if (cloudConfig.token && cloudConfig.gistId) { setSyncing(true); try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); logStatus("Cloud Saved"); } catch(e) { logStatus("Sync Failed"); } finally { setSyncing(false); } } }
         async function pullFromCloud() { if (!cloudConfig.token || !cloudConfig.gistId) return; setSyncing(true); try { const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } }); const data = await res.json(); if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); localStorage.setItem('media_v1', JSON.stringify(items)); render(); logStatus("Cloud Synced"); } } catch(e) { logStatus("Offline"); } finally { setSyncing(false); } }
-        async function refreshIGDBToken() { try { const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://id.twitch.tv/oauth2/token')}`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials` }); const d = await res.json(); if (d.access_token) { localStorage.setItem('igdb_token', d.access_token); return d.access_token; } } catch(e) { return null; } }
+
+        async function refreshIGDBToken() { 
+            try { 
+                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://id.twitch.tv/oauth2/token')}`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
+                    body: `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials` 
+                }); 
+                const d = await res.json(); 
+                if (d.access_token) { 
+                    localStorage.setItem('igdb_token', d.access_token); 
+                    return d.access_token; 
+                } else {
+                    console.error("Token Error:", d);
+                    return null;
+                }
+            } catch(e) { return null; } 
+        }
 
         function debounceSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(performLiveSearch, 400); }
 
@@ -185,8 +202,17 @@
                 let results = [];
                 if (cat === 'vidya') {
                     let token = localStorage.getItem('igdb_token') || await refreshIGDBToken();
-                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `fields name, first_release_date, cover.url; search "${title}"; limit 25;` });
-                    const d = await r.json(); if(d) results = d.map(g => ({ title: g.name, year: g.first_release_date ? new Date(g.first_release_date*1000).getFullYear() : 'TBA', id: g.id, img: g.cover ? g.cover.url.replace('t_thumb', 't_cover_small') : '' }));
+                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { 
+                        method: 'POST', 
+                        headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, 
+                        body: `fields name, first_release_date, cover.url; search "${title}"; limit 25;` 
+                    });
+                    const d = await r.json(); 
+                    if(d.length === 0 && token) { // Retry once if token failed
+                        localStorage.removeItem('igdb_token');
+                        return performLiveSearch();
+                    }
+                    if(d) results = d.map(g => ({ title: g.name, year: g.first_release_date ? new Date(g.first_release_date*1000).getFullYear() : 'TBA', id: g.id, img: g.cover ? g.cover.url.replace('t_thumb', 't_cover_small') : '' }));
                 } else {
                     const r = await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
                     const d = await r.json(); if(d.results) results = d.results.map(m => ({ title: m.title || m.name, year: (m.release_date || m.first_air_date || 'TBA').split('-')[0], id: m.id, img: m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : '' }));
@@ -234,11 +260,8 @@
             container.innerHTML = '';
             catOrder.forEach(key => {
                 let list = items.filter(i => i.category === key && i.title.toLowerCase().includes(filter));
-                if (showArchive) {
-                    list = list.filter(i => i.status === 'done');
-                } else {
-                    list = list.filter(i => i.status !== 'done' && !hiddenPriorities[key].includes(i.priority));
-                }
+                if (showArchive) { list = list.filter(i => i.status === 'done'); } 
+                else { list = list.filter(i => i.status !== 'done' && !hiddenPriorities[key].includes(i.priority)); }
                 if (s !== 'manual') list.sort((a,b) => { if(s==='priority') return a.priority - b.priority; if(s==='recent') return b.id - a.id; if(s==='rating') return b.score - a.score; if(s==='release') return parseInt(b.release) - parseInt(a.release); return 0; });
                 
                 let pToggles = showArchive ? '' : '<div class="flex gap-2 ml-4 relative z-30" onclick="event.stopPropagation()">';
