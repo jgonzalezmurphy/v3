@@ -134,213 +134,58 @@
     </div>
 
     <script>
-        const TMDB_KEY="f8baa5b950fb92e47e7250e9faaa2a5c";
-        const RAWG_KEY="40dcecf909e541df8eafbb648d749512";
-        const JSONBIN_KEY="$2a$10$EHxuZ8yO7jVGqYvXJZH5.OGdPNMvL3rXQKJHZvQZH5xKJHZvQZ5xK"; // Free JSONBin API key
-        
-        let items=JSON.parse(localStorage.getItem('media_v1'))||[],collapsed=JSON.parse(localStorage.getItem('vault_collapsed'))||{},catOrder=JSON.parse(localStorage.getItem('vault_cat_order'))||['vidya','movie','tv'],searchTimeout,hiddenPriorities=JSON.parse(localStorage.getItem('vault_hidden_pri'))||{vidya:[],movie:[],tv:[]},showArchive=false,deleteTimers={},syncInProgress=false;
-        
-        // Cloud sync setup
-        let binId=localStorage.getItem('vault_bin_id')||'';
-        if(localStorage.getItem('vault_dark')==='true')document.body.classList.add('dark-mode');
+        const T="f8baa5b950fb92e47e7250e9faaa2a5c",R="40dcecf909e541df8eafbb648d749512",J="$2a$10$EHxuZ8yO7jVGqYvXJZH5.OGdPNMvL3rXQKJHZvQZH5xKJHZvQZ5xK",I="8bjq7bqv85pvclvbdlo4ocgff060tp",S="96q58dkxsz3cfe853ckpn9opqy6sli";
+        let items=JSON.parse(localStorage.media_v1||'[]'),collapsed=JSON.parse(localStorage.vault_collapsed||'{}'),catOrder=JSON.parse(localStorage.vault_cat_order||'["vidya","movie","tv"]'),searchTimeout,hiddenPriorities=JSON.parse(localStorage.vault_hidden_pri||'{"vidya":[],"movie":[],"tv":[]}'),showArchive=!1,deleteTimers={},syncInProgress=!1,binId=localStorage.vault_bin_id||'',igdbToken=localStorage.igdb_token||'';
+        localStorage.vault_dark==='true'&&document.body.classList.add('dark-mode');
 
-        // Initialize cloud storage on first load
-        async function initCloud(){
-            if(!binId){
-                try{
-                    const res=await fetch('https://api.jsonbin.io/v3/b',{
-                        method:'POST',
-                        headers:{
-                            'Content-Type':'application/json',
-                            'X-Master-Key':JSONBIN_KEY,
-                            'X-Bin-Private':'false'
-                        },
-                        body:JSON.stringify({items:[],collapsed:{},hiddenPriorities:{vidya:[],movie:[],tv:[]},catOrder:['vidya','movie','tv']})
-                    });
-                    const data=await res.json();
-                    if(data.metadata?.id){
-                        binId=data.metadata.id;
-                        localStorage.setItem('vault_bin_id',binId);
-                        updateCloudStatus('Cloud sync enabled');
-                    }
-                }catch(e){console.error('Cloud init error:',e)}
-            }else{
-                await pullFromCloud();
-            }
-        }
+        async function getIGDBToken(){if(igdbToken&&Date.now()-parseInt(localStorage.igdb_token_time||0)<432e5)return igdbToken;try{const r=await fetch('https://id.twitch.tv/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`client_id=${I}&client_secret=${S}&grant_type=client_credentials`}),d=await r.json();if(d.access_token){igdbToken=d.access_token;localStorage.igdb_token=igdbToken;localStorage.igdb_token_time=Date.now();return igdbToken}}catch(e){}return null}
 
-        async function save(){
-            localStorage.setItem('media_v1',JSON.stringify(items));
-            localStorage.setItem('vault_collapsed',JSON.stringify(collapsed));
-            render();
-            await pushToCloud();
-        }
+        async function fetchGameRuntime(title){let runtime='--';try{const r=await fetch(`https://api.rawg.io/api/games?key=${R}&search=${encodeURIComponent(title)}&page_size=1`),d=await r.json();if(d.results?.[0]?.playtime)return d.results[0].playtime+'h'}catch(e){}try{const token=await getIGDBToken();if(!token)throw new Error('No token');const r=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://api.igdb.com/v4/games'),{method:'POST',headers:{'Client-ID':I,'Authorization':`Bearer ${token}`,'Content-Type':'text/plain'},body:`fields name,time_to_beat;search "${title.replace(/"/g,'\\"')}";limit 1;`}),d=await r.json();if(d[0]?.time_to_beat?.normally)return Math.round(d[0].time_to_beat.normally/3600)+'h'}catch(e){}try{const r=await fetch(`https://howlongtobeat.com/api/search`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({searchType:'games',searchTerms:[title.split(' ')],searchOptions:{games:{sortCategory:'popular',rangeCategory:'main',platform:'',include:'',exclude:''}}})}),d=await r.json();if(d.data?.[0]?.comp_main_extra)return Math.round(d.data[0].comp_main_extra/3600)+'h'}catch(e){}return'--'}
 
-        async function pushToCloud(){
-            if(!binId||syncInProgress)return;
-            syncInProgress=true;
-            try{
-                await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{
-                    method:'PUT',
-                    headers:{
-                        'Content-Type':'application/json',
-                        'X-Master-Key':JSONBIN_KEY
-                    },
-                    body:JSON.stringify({items,collapsed,hiddenPriorities,catOrder})
-                });
-            }catch(e){console.error('Push error:',e)}
-            syncInProgress=false;
-        }
+        async function initCloud(){if(!binId){try{const r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':J,'X-Bin-Private':'false'},body:JSON.stringify({items:[],collapsed:{},hiddenPriorities:{vidya:[],movie:[],tv:[]},catOrder:['vidya','movie','tv']})}),d=await r.json();d.metadata?.id&&(binId=d.metadata.id,localStorage.vault_bin_id=binId,updateCloudStatus('Cloud sync enabled'))}catch(e){}}else await pullFromCloud()}
 
-        async function pullFromCloud(){
-            if(!binId)return;
-            try{
-                const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{
-                    headers:{'X-Master-Key':JSONBIN_KEY}
-                });
-                const data=await res.json();
-                if(data.record){
-                    items=data.record.items||[];
-                    collapsed=data.record.collapsed||{};
-                    hiddenPriorities=data.record.hiddenPriorities||{vidya:[],movie:[],tv:[]};
-                    catOrder=data.record.catOrder||['vidya','movie','tv'];
-                    localStorage.setItem('media_v1',JSON.stringify(items));
-                    localStorage.setItem('vault_collapsed',JSON.stringify(collapsed));
-                    localStorage.setItem('vault_hidden_pri',JSON.stringify(hiddenPriorities));
-                    localStorage.setItem('vault_cat_order',JSON.stringify(catOrder));
-                    render();
-                    updateCloudStatus('Synced successfully',true);
-                }
-            }catch(e){
-                console.error('Pull error:',e);
-                updateCloudStatus('Sync failed',false);
-            }
-        }
+        async function save(){localStorage.media_v1=JSON.stringify(items);localStorage.vault_collapsed=JSON.stringify(collapsed);render();pushToCloud()}
 
-        async function manualSync(){
-            const icon=document.getElementById('sync-icon');
-            icon.classList.add('sync-spinning');
-            await pullFromCloud();
-            setTimeout(()=>icon.classList.remove('sync-spinning'),500);
-        }
+        async function pushToCloud(){if(!binId||syncInProgress)return;syncInProgress=!0;try{await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':J},body:JSON.stringify({items,collapsed,hiddenPriorities,catOrder})})}catch(e){}syncInProgress=!1}
 
-        function updateCloudStatus(msg,success=true){
-            const status=document.getElementById('cloud-status');
-            status.innerHTML=`<span class="text-${success?'green':'red'}-400">${msg}</span>`;
-        }
+        async function pullFromCloud(){if(!binId)return;try{const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':J}}),d=await r.json();if(d.record){items=d.record.items||[];collapsed=d.record.collapsed||{};hiddenPriorities=d.record.hiddenPriorities||{vidya:[],movie:[],tv:[]};catOrder=d.record.catOrder||['vidya','movie','tv'];localStorage.media_v1=JSON.stringify(items);localStorage.vault_collapsed=JSON.stringify(collapsed);localStorage.vault_hidden_pri=JSON.stringify(hiddenPriorities);localStorage.vault_cat_order=JSON.stringify(catOrder);render();updateCloudStatus('Synced',!0)}}catch(e){updateCloudStatus('Sync failed',!1)}}
 
-        function resetCloud(){
-            if(confirm('Create new cloud storage? Your current data will be uploaded to a new cloud ID.')){
-                binId='';
-                localStorage.removeItem('vault_bin_id');
-                initCloud();
-            }
-        }
+        async function manualSync(){const i=document.getElementById('sync-icon');i.classList.add('sync-spinning');await pullFromCloud();setTimeout(()=>i.classList.remove('sync-spinning'),500)}
 
-        function togglePriority(cat,p){const arr=hiddenPriorities[cat];if(arr.includes(p))hiddenPriorities[cat]=arr.filter(x=>x!==p);else arr.push(p);localStorage.setItem('vault_hidden_pri',JSON.stringify(hiddenPriorities));save()}
+        function updateCloudStatus(m,s=!0){document.getElementById('cloud-status').innerHTML=`<span class="text-${s?'green':'red'}-400">${m}</span>`}
 
-        function pickRandom(){const pool=items.filter(i=>!hiddenPriorities[i.category]?.includes(i.priority)&&i.status!=='done'&&!collapsed[i.category]);if(pool.length===0){alert("No visible items!");return}const winner=pool[Math.floor(Math.random()*pool.length)];const modal=document.getElementById('random-modal');const content=document.getElementById('random-content');content.innerHTML=`<div class="text-4xl font-black text-white uppercase">${winner.title}</div><div class="text-xl text-blue-400 font-bold mt-2">${winner.genre}</div>`;modal.style.display='flex'}
+        function resetCloud(){confirm('Create new cloud storage? Your current data will be uploaded to a new cloud ID.')&&(binId='',localStorage.removeItem('vault_bin_id'),initCloud())}
+
+        function togglePriority(c,p){const a=hiddenPriorities[c];a.includes(p)?hiddenPriorities[c]=a.filter(x=>x!==p):a.push(p);localStorage.vault_hidden_pri=JSON.stringify(hiddenPriorities);save()}
+
+        function pickRandom(){const p=items.filter(i=>!hiddenPriorities[i.category]?.includes(i.priority)&&i.status!=='done'&&!collapsed[i.category]);if(!p.length){alert("No visible items!");return}const w=p[Math.floor(Math.random()*p.length)];document.getElementById('random-content').innerHTML=`<div class="text-4xl font-black text-white uppercase">${w.title}</div><div class="text-xl text-blue-400 font-bold mt-2">${w.genre}</div>`;document.getElementById('random-modal').style.display='flex'}
 
         function debounceSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(performLiveSearch,400)}
 
-        async function performLiveSearch(){
-            const title=document.getElementById('title').value.trim(),cat=document.getElementById('category').value,dropdown=document.getElementById('live-results');
-            if(title.length<2){dropdown.classList.remove('active');return}
-            dropdown.innerHTML='<div class="p-3 text-xs text-white/50 italic">Searching...</div>';dropdown.classList.add('active');
-            try{
-                let results=[];
-                if(cat==='vidya'){
-                    const r=await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(title)}&page_size=20`);
-                    const d=await r.json();
-                    if(d.results){results=d.results.map(g=>({title:g.name,year:g.released?g.released.split('-')[0]:'TBA',id:g.id,img:g.background_image||'',rating:g.rating||0,genres:g.genres||[]}))}
-                }else{
-                    const r=await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
-                    const d=await r.json();
-                    if(d.results)results=d.results.map(m=>({title:m.title||m.name,year:(m.release_date||m.first_air_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:''}))
-                }
-                dropdown.innerHTML=`<div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`;
-                results.forEach(res=>{const el=document.createElement('div');el.className='live-item';el.innerHTML=`<img src="${res.img||''}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;el.onclick=()=>processSelection(cat,res.id,res.title,res);dropdown.appendChild(el)})
-            }catch(e){console.error('Search error:',e);dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error</div><div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`}
-        }
+        async function performLiveSearch(){const title=document.getElementById('title').value.trim(),cat=document.getElementById('category').value,dropdown=document.getElementById('live-results');if(title.length<2){dropdown.classList.remove('active');return}dropdown.innerHTML='<div class="p-3 text-xs text-white/50 italic">Searching...</div>';dropdown.classList.add('active');try{let results=[];if(cat==='vidya'){const r=await fetch(`https://api.rawg.io/api/games?key=${R}&search=${encodeURIComponent(title)}&page_size=20`),d=await r.json();d.results&&(results=d.results.map(g=>({title:g.name,year:g.released?g.released.split('-')[0]:'TBA',id:g.id,img:g.background_image||''})))}else{const r=await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${T}&query=${encodeURIComponent(title)}`),d=await r.json();d.results&&(results=d.results.map(m=>({title:m.title||m.name,year:(m.release_date||m.first_air_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:''})))}dropdown.innerHTML=`<div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`;results.forEach(res=>{const el=document.createElement('div');el.className='live-item';el.innerHTML=`<img src="${res.img||''}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;el.onclick=()=>processSelection(cat,res.id,res.title,res);dropdown.appendChild(el)})}catch(e){dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error</div><div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`}}
 
-        async function processSelection(cat,id,title,searchResult){
-            document.getElementById('live-results').classList.remove('active');
-            try{
-                let score=0,year='2026',genre='Genre',runtime='--';
-                if(cat==='vidya'){
-                    const r=await fetch(`https://api.rawg.io/api/games/${id}?key=${RAWG_KEY}`);
-                    const d=await r.json();
-                    score=d.rating?Math.round(d.rating*20):0;
-                    year=d.released?d.released.split('-')[0]:searchResult.year||'2026';
-                    genre=d.genres?.[0]?.name||'Game';
-                    runtime='--'
-                }else{
-                    const det=await(await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${TMDB_KEY}`)).json();
-                    score=Math.round(det.vote_average*10);
-                    year=(det.release_date||det.first_air_date||"").split('-')[0];
-                    genre=det.genres?.[0]?.name||cat.toUpperCase();
-                    if(cat==='movie')runtime=det.runtime?det.runtime+'m':'--';
-                    else runtime=(det.number_of_seasons?'S'+det.number_of_seasons:'S1')+' E'+(det.number_of_episodes||'--')
-                }
-                finalizeAdd(title,year,score,genre,runtime)
-            }catch(e){console.error('Process selection error:',e);finalizeAdd(title,'2026',0,cat==='vidya'?'Game':cat.toUpperCase(),'--')}
-        }
+        async function processSelection(cat,id,title,searchResult){document.getElementById('live-results').classList.remove('active');try{let score=0,year='2026',genre='Genre',runtime='--';if(cat==='vidya'){const r=await fetch(`https://api.rawg.io/api/games/${id}?key=${R}`),d=await r.json();score=d.rating?Math.round(d.rating*20):0;year=d.released?d.released.split('-')[0]:searchResult.year||'2026';genre=d.genres?.[0]?.name||'Game';runtime=await fetchGameRuntime(title)}else{const det=await(await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${T}`)).json();score=Math.round(det.vote_average*10);year=(det.release_date||det.first_air_date||"").split('-')[0];genre=det.genres?.[0]?.name||cat.toUpperCase();runtime=cat==='movie'?(det.runtime?det.runtime+'m':'--'):(det.number_of_seasons?'S'+det.number_of_seasons:'S1')+' E'+(det.number_of_episodes||'--')}finalizeAdd(title,year,score,genre,runtime)}catch(e){finalizeAdd(title,'2026',0,cat==='vidya'?'Game':cat.toUpperCase(),'--')}}
 
-        function confirmDelete(id){
-            const btn=document.getElementById(`del-${id}`);
-            if(deleteTimers[id]){
-                clearTimeout(deleteTimers[id]);
-                delete deleteTimers[id];
-                items=items.filter(z=>z.id!==id);
-                save()
-            }else{
-                btn.innerText='SURE?';
-                btn.classList.add('delete-confirm');
-                deleteTimers[id]=setTimeout(()=>{
-                    btn.innerText='DEL';
-                    btn.classList.remove('delete-confirm');
-                    delete deleteTimers[id]
-                },3000)
-            }
-        }
+        function confirmDelete(id){const b=document.getElementById(`del-${id}`);if(deleteTimers[id]){clearTimeout(deleteTimers[id]);delete deleteTimers[id];items=items.filter(z=>z.id!==id);save()}else{b.innerText='SURE?';b.classList.add('delete-confirm');deleteTimers[id]=setTimeout(()=>{b.innerText='DEL';b.classList.remove('delete-confirm');delete deleteTimers[id]},3e3)}}
 
-        function finalizeAdd(title,year,score,genre,runtime){const newItem={id:Date.now(),title,category:document.getElementById('category').value,priority:parseInt(document.getElementById('priority').value),status:'to-do',score,genre,release:year,runtime,notes:''};items.push(newItem);document.getElementById('title').value='';document.getElementById('live-results').classList.remove('active');save()}
-        
-        function moveCategory(index,dir){if(dir===-1&&index>0){[catOrder[index],catOrder[index-1]]=[catOrder[index-1],catOrder[index]]}if(dir===1&&index<catOrder.length-1){[catOrder[index],catOrder[index+1]]=[catOrder[index+1],catOrder[index]]}localStorage.setItem('vault_cat_order',JSON.stringify(catOrder));renderSettings();render();pushToCloud()}
-        
-        function moveItem(id,dir){const idx=items.findIndex(x=>x.id===id),dest=idx+dir;if(dest>=0&&dest<items.length){[items[idx],items[dest]]=[items[dest],items[idx]];save()}}
-        
+        function finalizeAdd(title,year,score,genre,runtime){items.push({id:Date.now(),title,category:document.getElementById('category').value,priority:parseInt(document.getElementById('priority').value),status:'to-do',score,genre,release:year,runtime,notes:''});document.getElementById('title').value='';document.getElementById('live-results').classList.remove('active');save()}
+
+        function moveCategory(i,d){if(d===-1&&i>0)[catOrder[i],catOrder[i-1]]=[catOrder[i-1],catOrder[i]];if(d===1&&i<catOrder.length-1)[catOrder[i],catOrder[i+1]]=[catOrder[i+1],catOrder[i]];localStorage.vault_cat_order=JSON.stringify(catOrder);renderSettings();render();pushToCloud()}
+
+        function moveItem(id,d){const i=items.findIndex(x=>x.id===id),dest=i+d;if(dest>=0&&dest<items.length)[items[i],items[dest]]=[items[dest],items[i]];save()}
+
         function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items,null,2));a.download="vault_backup.json";a.click()}
-        
+
         function importBackup(i){const r=new FileReader();r.onload=e=>{items=JSON.parse(e.target.result);save()};r.readAsText(i.files[0])}
-        
-        function autoExpand(el,id){el.style.height='inherit';el.style.height=el.scrollHeight+'px';const i=items.find(x=>x.id===id);if(i){i.notes=el.value;localStorage.setItem('media_v1',JSON.stringify(items))}}
-        
-        function toggleTheme(){document.body.classList.toggle('dark-mode');localStorage.setItem('vault_dark',document.body.classList.contains('dark-mode'));render()}
 
-        function renderSettings(){const list=document.getElementById('cat-order-list'),labels={vidya:'Games',movie:'Cinema',tv:'Series'};list.innerHTML='';catOrder.forEach((cat,idx)=>{list.innerHTML+=`<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[cat]}</span><div class="flex gap-2"><button onclick="moveCategory(${idx},-1)">▲</button><button onclick="moveCategory(${idx},1)">▼</button></div></div>`})}
+        function autoExpand(el,id){el.style.height='inherit';el.style.height=el.scrollHeight+'px';const i=items.find(x=>x.id===id);if(i){i.notes=el.value;localStorage.media_v1=JSON.stringify(items)}}
 
-        function render(){
-            const container=document.getElementById('tables-container'),s=localStorage.getItem('vault_sort')||'priority',filter=document.getElementById('global-search').value.toLowerCase(),cats={vidya:'🎮 GAMES',movie:'🎥 CINEMA',tv:'📺 SERIES'},pMap={1:'IMM',2:'HI',3:'MED',4:'LOW'};
-            container.innerHTML='';
-            catOrder.forEach(key=>{
-                let list=items.filter(i=>i.category===key&&i.title.toLowerCase().includes(filter));
-                list=showArchive?list.filter(i=>i.status==='done'):list.filter(i=>i.status!=='done'&&!hiddenPriorities[key].includes(i.priority));
-                if(s!=='manual')list.sort((a,b)=>{if(s==='priority')return a.priority-b.priority;if(s==='recent')return b.id-a.id;if(s==='rating')return b.score-a.score;if(s==='release')return parseInt(b.release)-parseInt(a.release);return 0});
-                
-                let pToggles=showArchive?'':'<div class="flex gap-2 ml-4 relative z-30" onclick="event.stopPropagation()">';
-                if(!showArchive){[1,2,3,4].forEach(p=>{const colors={1:'bg-red-600',2:'bg-orange-600',3:'bg-blue-600',4:'bg-slate-600'};pToggles+=`<div onclick="togglePriority('${key}',${p})" class="pri-dot ${colors[p]} ${hiddenPriorities[key].includes(p)?'opacity-20 grayscale':'opacity-100'}"></div>`});pToggles+='</div>'}
+        function toggleTheme(){document.body.classList.toggle('dark-mode');localStorage.vault_dark=document.body.classList.contains('dark-mode');render()}
 
-                if(list.length===0&&!filter)return;
-                let section=`<section><div onclick="collapsed['${key}']=!collapsed['${key}'];save()" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[key]} ${collapsed[key]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[key]?'none':'block'}" class="space-y-2">`;
-                list.forEach(i=>{
-                    const bgClass=i.status==='done'?'priority-bg-done':`priority-bg-${i.priority}`;
-                    section+=`<div class="media-card card-${key} ${bgClass} p-3">${s==='manual'&&!showArchive?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-bold text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white/70 uppercase tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title+' official trailer')}','_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value);save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v,t])=>`<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value;save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button id="del-${i.id}" onclick="confirmDelete(${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this,${i.id})" onblur="save()">${i.notes||''}</textarea></div>`
-                });
-                container.innerHTML+=section+`</div></section>`
-            })
-        }
-        renderSettings();render();initCloud();
+        function renderSettings(){const l=document.getElementById('cat-order-list'),labels={vidya:'Games',movie:'Cinema',tv:'Series'};l.innerHTML='';catOrder.forEach((c,i)=>{l.innerHTML+=`<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[c]}</span><div class="flex gap-2"><button onclick="moveCategory(${i},-1)">▲</button><button onclick="moveCategory(${i},1)">▼</button></div></div>`})}
+
+        function render(){const c=document.getElementById('tables-container'),s=localStorage.vault_sort||'priority',f=document.getElementById('global-search').value.toLowerCase(),cats={vidya:'🎮 GAMES',movie:'🎥 CINEMA',tv:'📺 SERIES'},pMap={1:'IMM',2:'HI',3:'MED',4:'LOW'};c.innerHTML='';catOrder.forEach(k=>{let list=items.filter(i=>i.category===k&&i.title.toLowerCase().includes(f));list=showArchive?list.filter(i=>i.status==='done'):list.filter(i=>i.status!=='done'&&!hiddenPriorities[k].includes(i.priority));if(s!=='manual')list.sort((a,b)=>{if(s==='priority')return a.priority-b.priority;if(s==='recent')return b.id-a.id;if(s==='rating')return b.score-a.score;if(s==='release')return parseInt(b.release)-parseInt(a.release);return 0});let pToggles=showArchive?'':'<div class="flex gap-2 ml-4 relative z-30" onclick="event.stopPropagation()">';if(!showArchive){[1,2,3,4].forEach(p=>{const colors={1:'bg-red-600',2:'bg-orange-600',3:'bg-blue-600',4:'bg-slate-600'};pToggles+=`<div onclick="togglePriority('${k}',${p})" class="pri-dot ${colors[p]} ${hiddenPriorities[k].includes(p)?'opacity-20 grayscale':'opacity-100'}"></div>`});pToggles+='</div>'}if(list.length===0&&!f)return;let section=`<section><div onclick="collapsed['${k}']=!collapsed['${k}'];save()" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[k]} ${collapsed[k]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[k]?'none':'block'}" class="space-y-2">`;list.forEach(i=>{const bg=i.status==='done'?'priority-bg-done':`priority-bg-${i.priority}`;section+=`<div class="media-card card-${k} ${bg} p-3">${s==='manual'&&!showArchive?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${k}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-bold text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white uppercase tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title+' official trailer')}','_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value);save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v,t])=>`<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value;save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button id="del-${i.id}" onclick="confirmDelete(${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this,${i.id})" onblur="save()">${i.notes||''}</textarea></div>`});c.innerHTML+=section+'</div></section>'})}
+        renderSettings();render();setTimeout(initCloud,100)
     </script>
 </body>
 </html>
