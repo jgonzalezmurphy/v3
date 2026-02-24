@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="application-name" content="VAULT">
+    <meta name="apple-mobile-web-app-title" content="VAULT">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="theme-color" content="#0f172a">
+    <title>VAULT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root{--bg:#e6faff;--text:#000;--header:#000;--card-border:rgba(0,0,0,.3);--glass:rgba(15,23,42,.98);--notes-btn:#0369a1;--subtext:#475569;--filter-inactive:#64748b;--filter-inactive-bg:rgba(100,116,139,0.2);--filter-inactive-text:#334155}
+        body{background:var(--bg);color:var(--text);transition:background 0.3s ease,color 0.3s ease;overflow-x:hidden}
+        body.default-light{--bg:#e6faff;--text:#000;--header:#000;--card-border:rgba(0,0,0,.3);--glass:rgba(15,23,42,.98);--notes-btn:#0369a1;--subtext:#475569;--filter-inactive:#64748b;--filter-inactive-bg:rgba(100,116,139,0.2);--filter-inactive-text:#334155}
+        body.default-dark,body.dark{--bg:#020617;--text:#cbd5e1;--header:#fff;--card-border:rgba(255,255,255,.1);--glass:rgba(0,0,0,.95);--notes-btn:#38bdf8;--subtext:#94a3b8;--filter-inactive:#94a3b8;--filter-inactive-bg:rgba(255,255,255,0.1);--filter-inactive-text:#e2e8f0}
+        
+        body.cyberpunk{background:#0a0015;--text:#f0abfc;--header:#00ffff;--card-border:rgba(217,70,239,.5);--glass:rgba(26,0,51,.95);--notes-btn:#d946ef;--subtext:#f0abfc;--filter-inactive:#e879f9;--filter-inactive-bg:rgba(217,70,239,0.2);--filter-inactive-text:#fae8ff}
+        body.cyberpunk::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(90deg,transparent 0px,transparent 48px,rgba(0,255,255,0.1) 48px,rgba(0,255,255,0.1) 50px),repeating-linear-gradient(0deg,transparent 0px,transparent 48px,rgba(255,0,255,0.08) 48px,rgba(255,0,255,0.08) 50px),repeating-linear-gradient(45deg,transparent 0px,transparent 98px,rgba(217,70,239,0.05) 98px,rgba(217,70,239,0.05) 100px),radial-gradient(circle 1200px at 20% 30%,rgba(0,255,255,0.2) 0%,transparent 60%),radial-gradient(circle 1000px at 80% 70%,rgba(255,0,255,0.25) 0%,transparent 55%),radial-gradient(circle 800px at 50% 10%,rgba(217,70,239,0.15) 0%,transparent 65%),linear-gradient(180deg,transparent 0%,rgba(0,255,255,0.08) 50%,transparent 100%);pointer-events:none;z-index:0;will-change:transform;animation:cyberGlitch 6s ease-in-out infinite}
+        @keyframes cyberGlitch{0%,100%{opacity:1;transform:translate3d(0,0,0)}25%{opacity:0.95;transform:translate3d(0,-2px,0)}50%{opacity:1;transform:translate3d(0,0,0)}75%{opacity:0.97;transform:translate3d(0,1px,0)}}
+        
+        body.synthwave{background:linear-gradient(180deg,#1a0a3e 0%,#2a0050 40%,#0a0520 100%);--text:#ff71ce;--header:#01cdfe;--card-border:rgba(255,113,206,.4);--glass:rgba(10,5,32,.95);--notes-btn:#05ffa1;--subtext:#ff71ce;--filter-inactive:#fffb96;--filter-inactive-bg:rgba(255,113,206,0.2);--filter-inactive-text:#ff71ce}
+        body.synthwave::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent 0px,transparent 18px,rgba(255,113,206,0.12) 18px,rgba(255,113,206,0.12) 20px),repeating-linear-gradient(90deg,transparent 0px,transparent 48px,rgba(1,205,254,0.08) 48px,rgba(1,205,254,0.08) 50px),radial-gradient(ellipse 180% 50% at 50% 110%,rgba(255,113,206,0.3) 0%,rgba(1,205,254,0.25) 20%,rgba(5,255,161,0.2) 35%,transparent 65%),radial-gradient(circle 1500px at 50% 120%,rgba(255,71,206,0.35) 0%,transparent 50%),radial-gradient(circle 800px at 25% 15%,rgba(255,251,150,0.12) 0%,transparent 70%),radial-gradient(circle 900px at 75% 20%,rgba(185,103,255,0.15) 0%,transparent 75%),linear-gradient(0deg,rgba(255,113,206,0.18) 0%,transparent 50%);pointer-events:none;z-index:0;will-change:transform;animation:synthSun 25s ease-in-out infinite}
+        @keyframes synthSun{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(0,-25px,0) scale(1.05)}}
+        
+        body.matrix{background:#000;--text:#00ff00;--header:#00ff00;--card-border:rgba(0,255,0,.4);--glass:rgba(0,20,0,.95);--notes-btn:#00ff00;--subtext:#00cc00;--filter-inactive:#00aa00;--filter-inactive-bg:rgba(0,255,0,0.15);--filter-inactive-text:#00ff00}
+        body.matrix::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent 0px,transparent 1px,rgba(0,255,0,0.08) 1px,rgba(0,255,0,0.08) 3px),repeating-linear-gradient(90deg,transparent 0px,transparent 38px,rgba(0,255,0,0.04) 38px,rgba(0,255,0,0.04) 40px),radial-gradient(ellipse 100% 60% at 50% 50%,rgba(0,180,0,0.5) 0%,transparent 80%),radial-gradient(circle 1200px at 15% 25%,rgba(0,255,0,0.15) 0%,transparent 70%),radial-gradient(circle 1000px at 85% 75%,rgba(0,200,0,0.2) 0%,transparent 65%),radial-gradient(circle 800px at 50% 90%,rgba(0,255,0,0.12) 0%,transparent 75%),linear-gradient(180deg,rgba(0,255,0,0.06) 0%,transparent 40%,transparent 60%,rgba(0,100,0,0.15) 100%);pointer-events:none;z-index:0;will-change:transform;animation:matrixRain 4s linear infinite}
+        @keyframes matrixRain{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(0,40px,0)}}
+        
+        body.ocean{background:linear-gradient(180deg,#0c4a6e 0%,#164e63 30%,#082f49 70%,#051b2a 100%);--text:#cffafe;--header:#fff;--card-border:rgba(6,182,212,.4);--glass:rgba(8,47,73,.95);--notes-btn:#06b6d4;--subtext:#67e8f9;--filter-inactive:#22d3ee;--filter-inactive-bg:rgba(6,182,212,0.25);--filter-inactive-text:#cffafe}
+        body.ocean::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent 0px,transparent 20px,rgba(6,182,212,0.12) 20px,rgba(6,182,212,0.12) 24px),repeating-linear-gradient(0deg,transparent 0px,transparent 45px,rgba(34,211,238,0.08) 45px,rgba(34,211,238,0.08) 50px),repeating-linear-gradient(0deg,transparent 0px,transparent 75px,rgba(103,232,249,0.06) 75px,rgba(103,232,249,0.06) 80px),radial-gradient(ellipse 180% 70% at 50% 110%,rgba(6,182,212,0.4) 0%,rgba(34,211,238,0.25) 30%,transparent 70%),radial-gradient(circle 1400px at 20% 10%,rgba(34,211,238,0.25) 0%,transparent 60%),radial-gradient(circle 1200px at 80% 30%,rgba(103,232,249,0.18) 0%,transparent 65%),radial-gradient(circle 900px at 15% 80%,rgba(6,182,212,0.2) 0%,transparent 70%),radial-gradient(circle 800px at 85% 85%,rgba(34,211,238,0.15) 0%,transparent 65%),linear-gradient(180deg,rgba(6,182,212,0.12) 0%,transparent 50%);pointer-events:none;z-index:0;will-change:transform;animation:oceanWave 18s ease-in-out infinite}
+        @keyframes oceanWave{0%,100%{transform:translate3d(0,0,0) scaleY(1)}33%{transform:translate3d(0,-15px,0) scaleY(1.02)}66%{transform:translate3d(0,10px,0) scaleY(0.98)}}
+        
+        body.sunset{background:linear-gradient(175deg,#7c2d12 0%,#9a3412 25%,#c2410c 45%,#ea580c 60%,#431407 100%);--text:#fed7aa;--header:#fff;--card-border:rgba(249,115,22,.4);--glass:rgba(124,45,18,.95);--notes-btn:#fb923c;--subtext:#fdba74;--filter-inactive:#fb923c;--filter-inactive-bg:rgba(249,115,22,0.25);--filter-inactive-text:#fed7aa}
+        body.sunset::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 140% 55% at 50% -5%,rgba(254,215,170,0.5) 0%,rgba(251,146,60,0.4) 15%,rgba(249,115,22,0.3) 30%,transparent 65%),radial-gradient(circle 1200px at 50% 0%,rgba(251,191,36,0.35) 0%,transparent 55%),radial-gradient(circle 800px at 20% 30%,rgba(252,211,77,0.15) 0%,transparent 70%),radial-gradient(circle 900px at 80% 25%,rgba(254,240,138,0.12) 0%,transparent 65%),radial-gradient(circle 700px at 10% 75%,rgba(220,38,38,0.18) 0%,transparent 70%),radial-gradient(circle 750px at 90% 80%,rgba(239,68,68,0.15) 0%,transparent 65%),linear-gradient(180deg,rgba(251,146,60,0.15) 0%,transparent 50%);pointer-events:none;z-index:0;will-change:transform;animation:sunsetGlow 20s ease-in-out infinite}
+        @keyframes sunsetGlow{0%,100%{opacity:0.9}50%{opacity:1}}
+        
+        body.noir{background:radial-gradient(ellipse 140% 100% at 50% 50%,#1a1a1a 0%,#0a0a0a 60%,#000 100%);--text:#e5e5e5;--header:#fff;--card-border:rgba(255,255,255,.25);--glass:rgba(10,10,10,.95);--notes-btn:#999;--subtext:#bbb;--filter-inactive:#777;--filter-inactive-bg:rgba(255,255,255,0.1);--filter-inactive-text:#ccc}
+        body.noir::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(45deg,transparent 0px,transparent 1px,rgba(255,255,255,0.012) 1px,rgba(255,255,255,0.012) 3px),repeating-linear-gradient(-45deg,transparent 0px,transparent 1px,rgba(255,255,255,0.012) 1px,rgba(255,255,255,0.012) 3px),radial-gradient(ellipse 120% 80% at 50% 45%,rgba(255,255,255,0.1) 0%,transparent 75%),radial-gradient(circle 1200px at 50% 50%,rgba(255,255,255,0.08) 0%,transparent 60%),radial-gradient(ellipse 100% 60% at 30% 30%,rgba(255,255,255,0.05) 0%,transparent 70%),radial-gradient(circle 900px at 70% 70%,rgba(200,200,200,0.06) 0%,transparent 75%),linear-gradient(180deg,rgba(255,255,255,0.02) 0%,transparent 35%,transparent 65%,rgba(0,0,0,0.5) 100%);pointer-events:none;z-index:0}
+
+        body.fantasy{background:linear-gradient(180deg,#1a0f2e 0%,#2d1b4e 30%,#0f172a 70%,#020617 100%);--text:#e9d5ff;--header:#fbbf24;--card-border:rgba(233,213,255,.4);--glass:rgba(15,23,42,.95);--notes-btn:#a855f7;--subtext:#c084fc;--filter-inactive:#d8b4fe;--filter-inactive-bg:rgba(168,85,247,0.2);--filter-inactive-text:#e9d5ff}
+        body.fantasy::after{content:'';position:fixed;inset:0;background:radial-gradient(circle 3px at 15% 20%,rgba(251,191,36,0.8) 0%,transparent 3px),radial-gradient(circle 2px at 85% 15%,rgba(251,191,36,0.6) 0%,transparent 2px),radial-gradient(circle 2px at 25% 60%,rgba(251,191,36,0.7) 0%,transparent 2px),radial-gradient(circle 3px at 75% 70%,rgba(251,191,36,0.5) 0%,transparent 3px),radial-gradient(circle 2px at 40% 85%,rgba(251,191,36,0.8) 0%,transparent 2px),radial-gradient(circle 2px at 90% 50%,rgba(251,191,36,0.6) 0%,transparent 2px),radial-gradient(circle 1400px at 50% 20%,rgba(168,85,247,0.15) 0%,transparent 60%),radial-gradient(circle 1200px at 20% 80%,rgba(217,70,239,0.12) 0%,transparent 65%),radial-gradient(circle 1000px at 80% 75%,rgba(147,51,234,0.1) 0%,transparent 70%),linear-gradient(180deg,rgba(168,85,247,0.08) 0%,transparent 40%);pointer-events:none;z-index:0;will-change:transform;animation:fantasyGlow 20s ease-in-out infinite}
+        @keyframes fantasyGlow{0%,100%{transform:translate3d(0,0,0);opacity:1}25%{transform:translate3d(3px,-3px,0);opacity:0.9}50%{transform:translate3d(-2px,2px,0);opacity:1}75%{transform:translate3d(2px,3px,0);opacity:0.95}}
+
+        body.space{background:#000;--text:#e0e7ff;--header:#fff;--card-border:rgba(224,231,255,.3);--glass:rgba(0,0,0,.95);--notes-btn:#818cf8;--subtext:#a5b4fc;--filter-inactive:#c7d2fe;--filter-inactive-bg:rgba(129,140,248,0.15);--filter-inactive-text:#e0e7ff}
+        body.space::after{content:'';position:fixed;inset:0;background:radial-gradient(circle 1px at 10% 10%,rgba(255,255,255,0.8) 0%,transparent 1px),radial-gradient(circle 2px at 25% 25%,rgba(255,255,255,0.6) 0%,transparent 2px),radial-gradient(circle 1px at 40% 15%,rgba(255,255,255,0.9) 0%,transparent 1px),radial-gradient(circle 1px at 60% 20%,rgba(255,255,255,0.7) 0%,transparent 1px),radial-gradient(circle 2px at 80% 30%,rgba(255,255,255,0.5) 0%,transparent 2px),radial-gradient(circle 1px at 15% 50%,rgba(255,255,255,0.8) 0%,transparent 1px),radial-gradient(circle 1px at 35% 60%,rgba(255,255,255,0.6) 0%,transparent 1px),radial-gradient(circle 2px at 70% 55%,rgba(255,255,255,0.7) 0%,transparent 2px),radial-gradient(circle 1px at 90% 70%,rgba(255,255,255,0.9) 0%,transparent 1px),radial-gradient(circle 1px at 20% 85%,rgba(255,255,255,0.6) 0%,transparent 1px),radial-gradient(circle 1px at 50% 90%,rgba(255,255,255,0.8) 0%,transparent 1px),radial-gradient(circle 1px at 85% 88%,rgba(255,255,255,0.5) 0%,transparent 1px),radial-gradient(ellipse 1400px 800px at 30% 40%,rgba(99,102,241,0.15) 0%,rgba(139,92,246,0.1) 40%,transparent 70%),radial-gradient(circle 1200px at 70% 60%,rgba(168,85,247,0.12) 0%,transparent 65%),linear-gradient(180deg,rgba(79,70,229,0.05) 0%,transparent 50%);pointer-events:none;z-index:0;will-change:transform;animation:spaceDrift 30s linear infinite}
+        @keyframes spaceDrift{0%{transform:translate3d(0,0,0) rotate(0deg)}100%{transform:translate3d(-20px,-20px,0) rotate(0.5deg)}}
+
+        body.aurora{background:linear-gradient(180deg,#0a0f1e 0%,#0f1729 30%,#020617 70%,#000 100%);--text:#d1fae5;--header:#6ee7b7;--card-border:rgba(209,250,229,.3);--glass:rgba(2,6,23,.95);--notes-btn:#34d399;--subtext:#6ee7b7;--filter-inactive:#a7f3d0;--filter-inactive-bg:rgba(52,211,153,0.2);--filter-inactive-text:#d1fae5}
+        body.aurora::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 200% 80% at 50% -20%,rgba(52,211,153,0.25) 0%,rgba(16,185,129,0.15) 30%,transparent 60%),radial-gradient(ellipse 180% 60% at 30% 10%,rgba(167,243,208,0.2) 0%,transparent 50%),radial-gradient(ellipse 180% 60% at 70% 15%,rgba(52,211,153,0.18) 0%,transparent 55%),radial-gradient(circle 1400px at 20% 30%,rgba(196,181,253,0.12) 0%,transparent 65%),radial-gradient(circle 1200px at 80% 40%,rgba(129,140,248,0.1) 0%,transparent 70%),linear-gradient(180deg,rgba(52,211,153,0.15) 0%,rgba(167,243,208,0.08) 30%,transparent 60%);pointer-events:none;z-index:0;will-change:transform;animation:auroraWave 25s ease-in-out infinite}
+        @keyframes auroraWave{0%,100%{transform:translate3d(0,0,0) skewX(0deg)}25%{transform:translate3d(15px,-10px,0) skewX(2deg)}50%{transform:translate3d(-10px,8px,0) skewX(-2deg)}75%{transform:translate3d(12px,-5px,0) skewX(1deg)}}
+
+        body.terminal{background:#000;--text:#0f0;--header:#0f0;--card-border:rgba(0,255,0,.3);--glass:rgba(0,15,0,.95);--notes-btn:#0f0;--subtext:#0c0;--filter-inactive:#0a0;--filter-inactive-bg:rgba(0,255,0,0.15);--filter-inactive-text:#0f0}
+        body.terminal::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent 0px,transparent 2px,rgba(0,255,0,0.03) 2px,rgba(0,255,0,0.03) 4px),radial-gradient(ellipse 120% 100% at 50% 50%,rgba(0,255,0,0.08) 0%,transparent 70%),radial-gradient(circle 1000px at 50% 50%,rgba(0,200,0,0.1) 0%,transparent 60%),linear-gradient(180deg,rgba(0,255,0,0.02) 0%,transparent 30%,transparent 70%,rgba(0,100,0,0.15) 100%);pointer-events:none;z-index:0;will-change:transform;animation:terminalFlicker 0.15s steps(1) infinite}
+        @keyframes terminalFlicker{0%,95%{opacity:1}96%,100%{opacity:0.92}}
+
+        body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.25);pointer-events:none;z-index:0}
+        .vault-logo{font-size:2.5rem;font-weight:900;letter-spacing:.2em;color:var(--header);text-shadow:2px 2px 4px rgba(0,0,0,0.5)}
+        h2{font-size:1.25rem;font-weight:900;color:var(--header);text-shadow:1px 1px 2px rgba(0,0,0,0.3)}
+        .icon-btn{cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.1);border-radius:50%;border:1px solid var(--card-border);position:relative;z-index:10}
+        .icon-btn::before{content:'⚙️';font-size:20px}
+        #live-results{position:absolute;top:100%;left:0;right:0;background:var(--glass);border:2px solid #3b82f6;border-top:none;border-radius:0 0 12px 12px;z-index:999999;max-height:350px;overflow-y:auto;display:none;box-shadow:0 20px 40px rgba(0,0,0,.8)}
+        #live-results.active{display:block}
+        .live-item{padding:12px;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer;color:#fff;display:flex;align-items:center;gap:12px}
+        .live-item:hover{background:rgba(59,130,246,0.2)}
+        .live-img{width:40px;height:60px;object-fit:cover;border-radius:4px;background:#1e293b}
+        .media-card{position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--card-border);transform:translateZ(0);backface-visibility:hidden}
+        .media-card:hover{transform:translateZ(0) scale(1.01);transition:transform 0.15s ease}
+        .media-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;z-index:2}
+        .card-vidya::before{background:linear-gradient(180deg,#fbbf24,#f59e0b)}
+        .card-movie::before{background:linear-gradient(180deg,#ef4444,#dc2626)}
+        .card-tv::before{background:linear-gradient(180deg,#22c55e,#16a34a)}
+        .media-card.deleting{animation:slideOut 0.3s ease forwards}
+        @keyframes slideOut{to{opacity:0;transform:translateX(-100%)}}
+        /* COMPACT: hide non-essential rows, keep same font sizes as normal */
+        .media-card.compact{padding:0.4rem 0.75rem!important}
+        .media-card.compact .compact-hide{display:none!important}
+        .media-card.compact .cover-art{width:36px!important;height:54px!important}
+        .media-card.compact .font-mono{font-size:0.875rem!important}
+        .media-card.compact .mt-2{margin-top:0.2rem!important}
+        .category-watermark{position:absolute;bottom:8px;right:8px;font-size:80px;font-weight:900;opacity:.03;pointer-events:none;text-transform:uppercase;z-index:1}
+        .priority-bg-1{background:linear-gradient(135deg,rgba(180,0,25,0.92) 0%,rgba(220,30,30,0.65) 35%,rgba(120,0,15,0.22) 100%)}
+        .priority-bg-2{background:linear-gradient(135deg,rgba(160,90,0,0.92) 0%,rgba(210,140,0,0.65) 35%,rgba(110,60,0,0.22) 100%)}
+        .priority-bg-3{background:linear-gradient(135deg,rgba(15,55,180,0.92) 0%,rgba(40,90,220,0.65) 35%,rgba(10,35,130,0.22) 100%)}
+        .priority-bg-4{background:linear-gradient(135deg,rgba(45,65,100,0.92) 0%,rgba(70,100,145,0.65) 35%,rgba(30,45,75,0.22) 100%)}
+        .priority-bg-done{background:linear-gradient(135deg,rgba(10,130,60,0.92) 0%,rgba(30,180,90,0.65) 35%,rgba(5,90,40,0.22) 100%)}
+        body.default-light .priority-bg-1{background:linear-gradient(135deg,rgba(180,0,25,0.92) 0%,rgba(220,30,30,0.65) 35%,rgba(120,0,15,0.22) 100%)}
+        body.default-light .priority-bg-2{background:linear-gradient(135deg,rgba(160,90,0,0.92) 0%,rgba(210,140,0,0.65) 35%,rgba(110,60,0,0.22) 100%)}
+        body.default-light .priority-bg-3{background:linear-gradient(135deg,rgba(15,55,180,0.92) 0%,rgba(40,90,220,0.65) 35%,rgba(10,35,130,0.22) 100%)}
+        body.default-light .priority-bg-4{background:linear-gradient(135deg,rgba(45,65,100,0.92) 0%,rgba(70,100,145,0.65) 35%,rgba(30,45,75,0.22) 100%)}
+        body.default-light .priority-bg-done{background:linear-gradient(135deg,rgba(10,130,60,0.92) 0%,rgba(30,180,90,0.65) 35%,rgba(5,90,40,0.22) 100%)}
+        body.default-dark .priority-bg-1{background:linear-gradient(135deg,rgba(180,0,25,0.92) 0%,rgba(220,30,30,0.65) 35%,rgba(120,0,15,0.22) 100%)}
+        body.default-dark .priority-bg-2{background:linear-gradient(135deg,rgba(160,90,0,0.92) 0%,rgba(210,140,0,0.65) 35%,rgba(110,60,0,0.22) 100%)}
+        body.default-dark .priority-bg-3{background:linear-gradient(135deg,rgba(15,55,180,0.92) 0%,rgba(40,90,220,0.65) 35%,rgba(10,35,130,0.22) 100%)}
+        body.default-dark .priority-bg-4{background:linear-gradient(135deg,rgba(45,65,100,0.92) 0%,rgba(70,100,145,0.65) 35%,rgba(30,45,75,0.22) 100%)}
+        body.default-dark .priority-bg-done{background:linear-gradient(135deg,rgba(10,130,60,0.92) 0%,rgba(30,180,90,0.65) 35%,rgba(5,90,40,0.22) 100%)}
+        .pri-dot{width:12px;height:12px;border-radius:50%;cursor:pointer;transition:all 0.2s}
+        .notes-trigger{font-size:9px;text-transform:uppercase;font-weight:900;color:var(--notes-btn);cursor:pointer;letter-spacing:.05em;padding:4px 8px;background:rgba(255,255,255,.05);border-radius:6px;border:1px solid var(--card-border)}
+        .notes-area{width:100%;margin-top:8px;padding:8px;background:rgba(0,0,0,.3);border:1px solid var(--card-border);border-radius:8px;color:#fff;resize:none;outline:none;font-size:11px;max-height:0;overflow:hidden;opacity:0;transition:all 0.3s ease}
+        .notes-area.active{max-height:200px;opacity:1;margin-top:12px}
+        .delete-confirm{background:rgba(220,38,38,0.8)!important}
+        #settings-menu,#random-modal,#stats-modal,#custom-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:9999}
+        #custom-modal .modal-content{background:var(--glass);border:2px solid var(--card-border);border-radius:16px;padding:2rem;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+        #custom-modal .modal-title{color:var(--header);font-weight:900;font-size:1.25rem;margin-bottom:1rem;text-align:center}
+        #custom-modal .modal-message{color:var(--text);margin-bottom:1.5rem;text-align:center}
+        #custom-modal .modal-input{width:100%;padding:0.75rem;background:rgba(0,0,0,0.4);border:1px solid var(--card-border);border-radius:8px;color:var(--text);outline:none;margin-bottom:1rem}
+        #custom-modal .modal-buttons{display:flex;gap:0.5rem;justify-content:center}
+        #custom-modal button{padding:0.75rem 1.5rem;border-radius:8px;font-weight:900;text-transform:uppercase;font-size:0.75rem;cursor:pointer;border:none}
+        #custom-modal .btn-primary{background:#3b82f6;color:#fff}
+        #custom-modal .btn-secondary{background:rgba(255,255,255,0.1);color:var(--text)}
+        #custom-modal .btn-danger{background:#ef4444;color:#fff}
+        .max-sm{max-width:500px;max-height:90vh;overflow-y:auto}
+        .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.05) 25%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .tag-chip{display:inline-block;background:rgba(59,130,246,0.2);color:#60a5fa;padding:2px 8px;border-radius:12px;font-size:8px;font-weight:900;margin:2px;border:1px solid rgba(59,130,246,0.3);text-transform:uppercase}
+        .cover-art{width:60px;height:90px;object-fit:cover;border-radius:8px;margin-right:12px;box-shadow:0 4px 12px rgba(0,0,0,0.5)}
+        .swipe-actions{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-weight:900;text-transform:uppercase;font-size:12px}
+        .swipe-left{right:0;background:rgba(239,68,68,0.9);padding:0 20px}
+        .swipe-right{left:0;background:rgba(34,197,94,0.9);padding:0 20px}
+        #undo-banner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 24px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.5);z-index:9999;display:none;animation:slideUp 0.3s ease}
+        @keyframes slideUp{from{transform:translate(-50%,100px)}to{transform:translate(-50%,0)}}
+        #confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999}
+        .highlight{background:rgba(255,255,0,0.3);border-radius:2px}
+        .relative.z-10{position:relative;z-index:1}
+    </style>
+</head>
+<body>
+    <div class="min-h-screen p-4 relative z-10">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="vault-logo">VAULT</h1>
+                <div onclick="document.getElementById('settings-menu').style.display='flex';checkBackupReminder()" class="icon-btn p-2 cursor-pointer"></div>
+            </div>
+            
+            <div class="mb-4">
+                <input id="global-search" type="text" placeholder="Search vault..." oninput="render()" class="w-full p-3 rounded-xl backdrop-blur-xl text-white placeholder-white/60 outline-none font-bold border border-white/20" style="background:rgba(0,0,0,0.4);text-shadow:1px 1px 2px rgba(0,0,0,0.5)">
+            </div>
+            
+            <div class="flex gap-2 mb-6 flex-wrap">
+                <button id="filter-all" onclick="toggleStatusFilter('all')" class="px-4 py-2 rounded-xl text-xs font-black uppercase border-2 transition-all" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">All</button>
+                <button id="filter-todo" onclick="toggleStatusFilter('to-do')" class="px-4 py-2 rounded-xl text-xs font-black uppercase border-2 transition-all" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">To-Do</button>
+                <button id="filter-progress" onclick="toggleStatusFilter('in-progress')" class="px-4 py-2 rounded-xl text-xs font-black uppercase border-2 transition-all" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">In Progress</button>
+                <button id="filter-done" onclick="toggleStatusFilter('done')" class="px-4 py-2 rounded-xl text-xs font-black uppercase border-2 transition-all" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">Done</button>
+            </div>
+            
+            <div class="backdrop-blur-xl p-6 rounded-2xl mb-6 border border-white/10" style="background:var(--glass);position:relative;z-index:9999999;isolation:isolate">
+                <div class="relative mb-3" style="isolation:isolate">
+                    <input id="title" type="text" autocomplete="off" placeholder="Enter Title or Paste URL..." oninput="debounceSearch()" onpaste="handlePaste(event)" onkeydown="handleEnterKey(event)" style="background-color:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);padding:1rem;border-radius:0.75rem;color:white;width:100%;outline:none;font-weight:bold;text-shadow:1px 1px 2px rgba(0,0,0,0.5)" class="placeholder-white/60">
+                    <div id="live-results"></div>
+                </div>
+                <div class="grid grid-cols-1 gap-3 mb-3">
+                    <select id="category" class="hidden">
+                        <option value="vidya">🎮 Games</option>
+                        <option value="movie">🎥 Movies</option>
+                        <option value="tv">📺 TV Shows</option>
+                    </select>
+                    <select id="priority" class="bg-blue-900 p-3 rounded-xl text-[10px] text-white font-black uppercase outline-none border border-white/10">
+                        <option value="1">🔴 Immediate</option>
+                        <option value="2">🟠 High</option>
+                        <option value="3" selected>🔵 Medium</option>
+                        <option value="4">⚫ Low</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <select id="sort-order" onchange="localStorage.setItem('vault_sort',this.value);render()" class="bg-blue-900 p-3 rounded-xl text-[10px] text-white font-black uppercase outline-none border border-white/10 w-full">
+                        <option value="priority">Priority</option>
+                        <option value="priority-added">Priority → Added</option>
+                        <option value="priority-rating">Priority → Rating</option>
+                        <option value="priority-release">Priority → Release</option>
+                        <option value="priority-genre">Priority → Genre</option>
+                        <option value="priority-manual">Priority → Manual</option>
+                        <option value="smart">🧠 Smart Sort</option>
+                        <option value="recent">Recent</option>
+                        <option value="rating">Rating</option>
+                        <option value="release">Release Year</option>
+                        <option value="added">Date Added</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <label class="flex items-center gap-2 cursor-pointer select-none" style="color:rgba(255,255,255,0.6);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;text-shadow:1px 1px 2px rgba(0,0,0,0.5)">
+                        <input type="checkbox" id="mark-upcoming" class="w-3 h-3 cursor-pointer"> Upcoming
+                    </label>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-3 rounded-xl font-black text-sm uppercase shadow-lg border-b-4 border-purple-800 w-16 flex items-center justify-center">🎲</button>
+                    <button onclick="finalizeAdd(document.getElementById('title').value,'2026',0,'Custom','--')" class="bg-blue-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg border-b-4 border-blue-800 flex-1">Add</button>
+                </div>
+            </div>
+        </div>
+        <div id="tables-container" class="space-y-8 max-w-4xl mx-auto"></div>
+    </div>
+
+    <div id="settings-menu">
+        <div class="bg-slate-900 w-11/12 max-sm p-6 rounded-2xl border border-white/10 shadow-2xl">
+            <h3 class="text-white font-black uppercase text-xl mb-6 text-center">Settings</h3>
+            
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">🎨 Appearance</h4>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button onclick="document.getElementById('theme-picker').classList.toggle('hidden')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Theme</button>
+                    <button onclick="toggleSetting('coverArt')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-coverArt">Cover Art: ON</button>
+                    <button onclick="toggleSetting('compact')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-compact">Compact: OFF</button>
+                    <button onclick="toggleSetting('animations')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-animations">Animations: ON</button>
+                    <button onclick="toggleSetting('confetti')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-confetti">Confetti: ON</button>
+                </div>
+                <div id="theme-picker" class="hidden mb-3 grid grid-cols-2 gap-2">
+                    <button onclick="setTheme('default-light')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#e6faff;color:#000;border-color:#0369a1">☀️ Light (Default)</button>
+                    <button onclick="setTheme('default-dark')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#020617;color:#fff;border-color:#3b82f6">🌙 Dark (Default)</button>
+                    <button onclick="setTheme('cyberpunk')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0a0015;color:#00ffff;border-color:#d946ef">⚡ Cyberpunk</button>
+                    <button onclick="setTheme('synthwave')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#1a0a3e;color:#ff71ce;border-color:#01cdfe">🌆 Synthwave</button>
+                    <button onclick="setTheme('matrix')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#000;color:#00ff00;border-color:#00ff00">🟩 Matrix</button>
+                    <button onclick="setTheme('ocean')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0c4a6e;color:#fff;border-color:#06b6d4">🌊 Ocean</button>
+                    <button onclick="setTheme('sunset')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#7c2d12;color:#fff;border-color:#f97316">🌅 Sunset</button>
+                    <button onclick="setTheme('noir')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0a0a0a;color:#e5e5e5;border-color:#999">🎬 Film Noir</button>
+                    <button onclick="setTheme('fantasy')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#1a0f2e;color:#e9d5ff;border-color:#a855f7">✨ Fantasy</button>
+                    <button onclick="setTheme('space')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#000;color:#e0e7ff;border-color:#818cf8">🚀 Space</button>
+                    <button onclick="setTheme('aurora')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0a0f1e;color:#d1fae5;border-color:#34d399">🌌 Northern Lights</button>
+                    <button onclick="setTheme('terminal')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#000;color:#0f0;border-color:#0f0">💻 Retro Terminal</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">🏷️ Features</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleSetting('tags')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-tags">Tags: ON</button>
+                    <button onclick="toggleSetting('notes')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-notes">Notes: ON</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">📱 Mobile</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleSetting('swipe')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-swipe">Swipe: ON</button>
+                    <button onclick="toggleSetting('haptic')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-haptic">Haptic: ON</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">💾 Data</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="showStats()" class="bg-purple-600 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Stats</button>
+                    <button onclick="exportCSV()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Export CSV</button>
+                    <button onclick="resetCloud()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">New Cloud ID</button>
+                    <button onclick="downloadBackup()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Export JSON</button>
+                    <button onclick="document.getElementById('importFile').click()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Import</button>
+                    <button onclick="shareVault()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Share</button>
+                </div>
+            </div>
+
+            <div id="backup-reminder"></div>
+            <div id="cat-order-list" class="space-y-2 mb-6"></div>
+            <div id="cloud-status" class="text-center text-xs mb-4"></div>
+            <button onclick="document.getElementById('settings-menu').style.display='none'" class="w-full bg-white text-black p-4 rounded-xl font-black text-xs uppercase shadow-xl">Close</button>
+        </div>
+    </div>
+
+    <div id="random-modal">
+        <div class="bg-slate-900 p-12 rounded-2xl border border-white/20 shadow-2xl text-center max-w-md">
+            <div id="random-content" class="mb-8"></div>
+            <button onclick="document.getElementById('random-modal').style.display='none'" class="bg-white text-black px-8 py-3 rounded-xl font-black uppercase">Close</button>
+        </div>
+    </div>
+
+    <div id="stats-modal">
+        <div class="bg-slate-900 w-11/12 max-sm p-6 rounded-2xl border border-white/10 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-white font-black uppercase text-xl">Stats</h3>
+                <button onclick="document.getElementById('stats-modal').style.display='none'" class="text-white/50 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div id="stats-content"></div>
+        </div>
+    </div>
+
+    <div id="custom-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-message" id="modal-message"></div>
+            <input type="text" class="modal-input" id="modal-input" style="display:none">
+            <div class="modal-buttons" id="modal-buttons"></div>
+        </div>
+    </div>
+
+    <div id="undo-banner">
+        <span id="undo-text">Item deleted</span>
+        <button onclick="undoDelete()" class="ml-4 bg-blue-500 text-white px-4 py-1 rounded font-black text-xs uppercase">UNDO</button>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+    <input type="file" id="importFile" class="hidden" onchange="importBackup(this)">
+
+    <script>
+        try {
+        const T="f8baa5b950fb92e47e7250e9faaa2a5c",R="40dcecf909e541df8eafbb648d749512",J="$2a$10$EHxuZ8yO7jVGqYvXJZH5.OGdPNMvL3rXQKJHZvQZH5xKJHZvQZ5xK",I="8bjq7bqv85pvclvbdlo4ocgff060tp",S="96q58dkxsz3cfe853ckpn9opqy6sli";
+        let items=JSON.parse(localStorage.media_v1||'[]'),collapsed=JSON.parse(localStorage.vault_collapsed||'{}'),catOrder=JSON.parse(localStorage.vault_cat_order||'["vidya","movie","tv"]'),searchTimeout,hiddenPriorities=JSON.parse(localStorage.vault_hidden_pri||'{"vidya":[],"movie":[],"tv":[]}'),showArchive=!1,deleteTimers={},syncInProgress=!1,binId=localStorage.vault_bin_id||'',igdbToken=localStorage.igdb_token||'',statusFilter=['to-do','in-progress'],undoStack=null,settings=JSON.parse(localStorage.vault_settings||'{"coverArt":true,"compact":false,"notes":true,"tags":true,"animations":true,"confetti":true,"swipe":true,"haptic":true}'),coverCache={},syncQueue=[],touchStartX=0,touchStartY=0,touchElement=null,modalResolve=null,isOffline=!navigator.onLine;
+        const savedTheme=localStorage.vault_theme||'default-light';if(savedTheme!=='default-light')document.body.classList.add(savedTheme);
+
+        // Offline detection
+        function checkOnline(){return navigator.onLine}
+        window.addEventListener('online',()=>{isOffline=false;showToast('✓ Back online');setTimeout(initCloud,500)});
+        window.addEventListener('offline',()=>{isOffline=true;showToast('⚠️ Offline mode')});
+
+        function customConfirm(message){return new Promise(resolve=>{modalResolve=resolve;document.getElementById('modal-title').textContent='Confirm';document.getElementById('modal-message').textContent=message;document.getElementById('modal-input').style.display='none';const btns=document.getElementById('modal-buttons');btns.innerHTML='<button class="btn-danger" onclick="resolveModal(true)">Delete</button><button class="btn-secondary" onclick="resolveModal(false)">Cancel</button>';document.getElementById('custom-modal').style.display='flex'})}
+
+        function customPrompt(message){return new Promise(resolve=>{modalResolve=resolve;document.getElementById('modal-title').textContent='Input';document.getElementById('modal-message').textContent=message;const inp=document.getElementById('modal-input');inp.style.display='block';inp.value='';const btns=document.getElementById('modal-buttons');btns.innerHTML='<button class="btn-primary" onclick="resolveModal(document.getElementById(\'modal-input\').value)">OK</button><button class="btn-secondary" onclick="resolveModal(null)">Cancel</button>';document.getElementById('custom-modal').style.display='flex';setTimeout(()=>inp.focus(),100)})}
+
+        function resolveModal(value){if(modalResolve){modalResolve(value);modalResolve=null}document.getElementById('custom-modal').style.display='none'}
+
+        function toggleSetting(key){settings[key]=!settings[key];localStorage.vault_settings=JSON.stringify(settings);document.getElementById(`toggle-${key}`).textContent=`${key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}: ${settings[key]?'ON':'OFF'}`;if(key==='animations')document.querySelectorAll('.media-card').forEach(c=>c.style.animation=settings.animations?'fadeIn 0.3s ease':'none');if(key==='swipe'&&settings.swipe){swipeListenersAttached=false;initSwipe()}render()}
+
+        function checkBackupReminder(){if(!localStorage.vault_last_backup)return;const lastBackup=parseInt(localStorage.vault_last_backup),daysSince=Math.floor((Date.now()-lastBackup)/864e5);if(daysSince>=28&&items.length>0){const status=document.getElementById('backup-reminder');if(status)status.innerHTML=`<div class="text-amber-400 text-xs mb-4 p-3 bg-amber-900/20 rounded-xl border border-amber-600/30">⚠️ Last backup: ${daysSince} days ago. <button onclick="downloadBackup()" class="underline font-black">Backup now</button></div>`}}
+
+        function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items,null,2));a.download="vault_backup_"+new Date().toISOString().split('T')[0]+".json";a.click();localStorage.vault_last_backup=Date.now()}
+
+        function exportCSV(){const headers=['Title','Category','Priority','Status','Score','Genre','Year','Runtime','Tags','Notes','Date Added'];const rows=items.map(i=>[i.title,i.category,i.priority,i.status,i.score,i.genre,i.release,i.runtime,(i.tags||[]).join(';'),i.notes||'',i.dateAdded||'']);const csv=[headers,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='vault_export_'+new Date().toISOString().split('T')[0]+'.csv';a.click()}
+
+        function shareVault(){const text=`My VAULT: ${items.length} items (${items.filter(i=>i.status==='done').length} completed)`;if(navigator.share){navigator.share({title:'VAULT',text,url:window.location.href}).catch(()=>{})}else{navigator.clipboard?.writeText(text);showToast('Stats copied to clipboard!')}}
+
+        async function getIGDBToken(){if(igdbToken&&Date.now()-parseInt(localStorage.igdb_token_time||0)<432e5)return igdbToken;try{const r=await fetch('https://id.twitch.tv/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`client_id=${I}&client_secret=${S}&grant_type=client_credentials`}),d=await r.json();if(d.access_token){igdbToken=d.access_token;localStorage.igdb_token=igdbToken;localStorage.igdb_token_time=Date.now();return igdbToken}}catch(e){}return null}
+
+        async function fetchGameRuntime(title){if(isOffline)return'--';let runtime='--';try{const token=await getIGDBToken();if(token){const r=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://api.igdb.com/v4/games'),{method:'POST',headers:{'Client-ID':I,'Authorization':`Bearer ${token}`,'Content-Type':'text/plain'},body:`fields name,time_to_beat;search "${title.replace(/"/g,'\\"')}";limit 1;`}),d=await r.json();if(d[0]?.time_to_beat?.completely)return Math.round(d[0].time_to_beat.completely/3600)+'h'}}catch(e){}try{const r=await fetch(`https://howlongtobeat.com/api/search`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({searchType:'games',searchTerms:[title.split(' ')],searchOptions:{games:{sortCategory:'popular',rangeCategory:'main',platform:'',include:'',exclude:''}}})}),d=await r.json();if(d.data?.[0]?.comp_100)return Math.round(d.data[0].comp_100/3600)+'h'}catch(e){}return'--'}
+
+        async function fetchCoverArt(id,cat){if(!settings.coverArt||isOffline)return null;const cacheKey=`${cat}-${id}`;if(coverCache[cacheKey])return coverCache[cacheKey];try{if(cat==='vidya'){const r=await fetch(`https://api.rawg.io/api/games/${id}?key=${R}`),d=await r.json();coverCache[cacheKey]=d.background_image;return d.background_image}else{const r=await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${T}`),d=await r.json();const url=d.poster_path?`https://image.tmdb.org/t/p/w200${d.poster_path}`:null;coverCache[cacheKey]=url;return url}}catch(e){return null}}
+
+        async function initCloud(){if(isOffline)return;if(!binId){try{const r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':J,'X-Bin-Private':'false'},body:JSON.stringify({items:[],collapsed:{},hiddenPriorities:{vidya:[],movie:[],tv:[]},catOrder:['vidya','movie','tv']})}),d=await r.json();d.metadata?.id&&(binId=d.metadata.id,localStorage.vault_bin_id=binId,updateCloudStatus('Cloud sync enabled'))}catch(e){}}else await pullFromCloud()}
+
+        let saveTimer;
+        function save(){localStorage.media_v1=JSON.stringify(items);localStorage.vault_collapsed=JSON.stringify(collapsed);render();clearTimeout(saveTimer);saveTimer=setTimeout(pushToCloud,2000)}
+
+        async function pushToCloud(){if(!binId||syncInProgress||isOffline)return;syncInProgress=!0;try{await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':J},body:JSON.stringify({items,collapsed,hiddenPriorities,catOrder})})}catch(e){}syncInProgress=!1}
+
+        async function pullFromCloud(){if(!binId||isOffline)return;try{const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':J}}),d=await r.json();if(d.record){items=d.record.items||[];collapsed=d.record.collapsed||{};hiddenPriorities=d.record.hiddenPriorities||{vidya:[],movie:[],tv:[]};catOrder=d.record.catOrder||['vidya','movie','tv'];localStorage.media_v1=JSON.stringify(items);localStorage.vault_collapsed=JSON.stringify(collapsed);localStorage.vault_hidden_pri=JSON.stringify(hiddenPriorities);localStorage.vault_cat_order=JSON.stringify(catOrder);render();updateCloudStatus('Synced',!0)}}catch(e){updateCloudStatus('Sync failed',!1)}}
+
+        function updateCloudStatus(m,s=!0){document.getElementById('cloud-status').innerHTML=`<span class="text-${s?'green':'red'}-400">${m}</span>`}
+
+        async function resetCloud(){if(await customConfirm('Create new cloud storage? Your current data will be uploaded to a new cloud ID.')){binId='';localStorage.removeItem('vault_bin_id');initCloud()}}
+
+        function togglePriority(c,p){const a=hiddenPriorities[c];a.includes(p)?hiddenPriorities[c]=a.filter(x=>x!==p):a.push(p);localStorage.vault_hidden_pri=JSON.stringify(hiddenPriorities);save()}
+
+        function toggleCategory(k){collapsed[k]=!collapsed[k];localStorage.vault_collapsed=JSON.stringify(collapsed);render()}
+
+        function pickRandom(){const p=items.filter(i=>!hiddenPriorities[i.category]?.includes(i.priority)&&i.status!=='done'&&!collapsed[i.category]);if(!p.length){showToast("No visible items to pick from!");return}const w=p[Math.floor(Math.random()*p.length)];document.getElementById('random-content').innerHTML=`<div class="text-4xl font-black text-white uppercase">${w.title}</div><div class="text-xl text-blue-400 font-bold mt-2">${w.genre}</div>`;history.pushState({modal:'random-modal'},'');document.getElementById('random-modal').style.display='flex'}
+
+        function showToast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 20px;border-radius:10px;z-index:99999;font-size:13px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.5)';document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+
+        function debounceSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(performLiveSearch,400)}
+
+        function handleEnterKey(e){if(e.key==='Enter'){e.preventDefault();const results=document.querySelectorAll('.live-item');if(results.length>1)results[1].click();else finalizeAdd(document.getElementById('title').value,'2026',0,'Custom','--')}}
+
+        async function handlePaste(e){const url=e.clipboardData.getData('text').trim();if(!url.startsWith('http'))return;e.preventDefault();const dropdown=document.getElementById('live-results');dropdown.innerHTML='<div class="p-3 text-xs text-white/50 italic">Fetching from URL...</div>';dropdown.classList.add('active');try{if(url.includes('imdb.com')){const imdbId=url.match(/tt\d+/)?.[0];if(imdbId){const r=await fetch(`https://api.themoviedb.org/3/find/${imdbId}?api_key=${T}&external_source=imdb_id`),d=await r.json();if(d.movie_results?.[0]){document.getElementById('category').value='movie';processSelection('movie',d.movie_results[0].id,d.movie_results[0].title,{});return}if(d.tv_results?.[0]){document.getElementById('category').value='tv';processSelection('tv',d.tv_results[0].id,d.tv_results[0].name,{});return}}}else if(url.includes('themoviedb.org')){const match=url.match(/\/(movie|tv)\/(\d+)/);if(match){document.getElementById('category').value=match[1];const id=match[2],r=await fetch(`https://api.themoviedb.org/3/${match[1]}/${id}?api_key=${T}`),d=await r.json();processSelection(match[1],id,d.title||d.name,{});return}}else if(url.includes('rawg.io')||url.includes('store.steampowered.com')){let gameName='';if(url.includes('rawg.io'))gameName=url.split('/').filter(p=>p&&!p.includes('rawg')&&!p.includes('games')&&!p.includes('http'))[0]?.replace(/-/g,' ');else if(url.includes('steam'))gameName=url.split('/')[5]?.replace(/-/g,' ')||url.split('/')[4]?.replace(/_/g,' ');if(gameName){document.getElementById('category').value='vidya';document.getElementById('title').value=gameName;performLiveSearch();return}}dropdown.innerHTML='<div class="p-3 text-xs text-red-400">URL not recognized. Supported: IMDB, TMDB, RAWG, Steam</div>';setTimeout(()=>dropdown.classList.remove('active'),3e3)}catch(e){dropdown.innerHTML='<div class="p-3 text-xs text-red-400">Failed to fetch from URL</div>';setTimeout(()=>dropdown.classList.remove('active'),3e3)}}
+
+        function highlightText(text,query){if(!query)return text;const regex=new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,`gi`);return text.replace(regex,'<span class="highlight">$1</span>')}
+
+        function parseSmartSearch(query){const filters={text:'',genre:null,year:null,scoreMin:null,scoreMax:null,status:null};const parts=query.toLowerCase().split(' ');parts.forEach(p=>{if(/^\d{4}$/.test(p))filters.year=parseInt(p);else if(p.match(/^score[><=]+\d+$/)){const op=p.match(/[><=]+/)[0],val=parseInt(p.match(/\d+/)[0]);if(op.includes('>'))filters.scoreMin=val;if(op.includes('<'))filters.scoreMax=val;if(op==='=')filters.scoreMin=filters.scoreMax=val}else if(['to-do','in-progress','done'].includes(p))filters.status=p;else filters.text+=' '+p});filters.text=filters.text.trim();return filters}
+
+        async function performLiveSearch(){const title=document.getElementById('title').value.trim(),dropdown=document.getElementById('live-results');if(title.length<2){dropdown.classList.remove('active');return}if(isOffline){dropdown.innerHTML=`<div class="p-3 text-xs text-amber-400">⚠️ Offline - search disabled</div><div class="px-3 pb-3 flex gap-1"><button onclick="document.getElementById('category').value='vidya';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/20 text-white px-2 py-1 rounded text-[9px] font-black">🎮</button><button onclick="document.getElementById('category').value='movie';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/20 text-white px-2 py-1 rounded text-[9px] font-black">🎥</button><button onclick="document.getElementById('category').value='tv';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/20 text-white px-2 py-1 rounded text-[9px] font-black">📺</button></div>`;dropdown.classList.add('active');return}dropdown.innerHTML='<div class="skeleton p-3 rounded" style="height:60px"></div><div class="skeleton p-3 rounded mt-2" style="height:60px"></div><div class="skeleton p-3 rounded mt-2" style="height:60px"></div>';dropdown.classList.add('active');try{let allResults=[];const [gamesRes,moviesRes,tvRes]=await Promise.all([fetch(`https://api.rawg.io/api/games?key=${R}&search=${encodeURIComponent(title)}&page_size=10`).catch(()=>({ok:false})),fetch(`https://api.themoviedb.org/3/search/movie?api_key=${T}&query=${encodeURIComponent(title)}`).catch(()=>({ok:false})),fetch(`https://api.themoviedb.org/3/search/tv?api_key=${T}&query=${encodeURIComponent(title)}`).catch(()=>({ok:false}))]);if(gamesRes.ok){const d=await gamesRes.json();d.results&&allResults.push(...d.results.slice(0,5).map(g=>({title:g.name,year:g.released?g.released.split('-')[0]:'TBA',id:g.id,img:g.background_image||'',category:'vidya',icon:'🎮'})))}if(moviesRes.ok){const d=await moviesRes.json();d.results&&allResults.push(...d.results.slice(0,5).map(m=>({title:m.title,year:(m.release_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:'',category:'movie',icon:'🎥'})))}if(tvRes.ok){const d=await tvRes.json();d.results&&allResults.push(...d.results.slice(0,5).map(t=>({title:t.name,year:(t.first_air_date||'TBA').split('-')[0],id:t.id,img:t.poster_path?`https://image.tmdb.org/t/p/w92${t.poster_path}`:'',category:'tv',icon:'📺'})))}const searchLower=title.toLowerCase();allResults.forEach(r=>{const titleLower=r.title.toLowerCase();if(titleLower===searchLower)r.score=100;else if(titleLower.startsWith(searchLower))r.score=90;else if(titleLower.includes(searchLower))r.score=50;else{const words=searchLower.split(' ');const matches=words.filter(w=>titleLower.includes(w)).length;r.score=matches/words.length*30}});allResults.sort((a,b)=>b.score-a.score);dropdown.innerHTML='';allResults.forEach(res=>{const el=document.createElement('div');el.className='live-item';el.innerHTML=`${res.img?`<img src="${res.img}" class="live-img" loading="lazy">`:'<div class="live-img"></div>'}<div class="flex-1"><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div><div class="text-xl flex-shrink-0">${res.icon}</div>`;el.onclick=()=>{document.getElementById('category').value=res.category;processSelection(res.category,res.id,res.title,res)};dropdown.appendChild(el)});const manual=document.createElement('div');manual.className='p-2 border-t border-white/10';manual.innerHTML=`<div class="flex gap-1"><button onclick="document.getElementById('category').value='vidya';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/10 hover:bg-blue-600/20 text-white text-[9px] font-black py-1 rounded border border-blue-500/20">🎮 Game</button><button onclick="document.getElementById('category').value='movie';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/10 hover:bg-blue-600/20 text-white text-[9px] font-black py-1 rounded border border-blue-500/20">🎥 Movie</button><button onclick="document.getElementById('category').value='tv';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/10 hover:bg-blue-600/20 text-white text-[9px] font-black py-1 rounded border border-blue-500/20">📺 Show</button></div>`;dropdown.appendChild(manual)}catch(e){dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error</div><div class="px-3 pb-3 flex gap-1"><button onclick="document.getElementById('category').value='vidya';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/20 text-white px-2 py-1 rounded text-[9px] font-black">🎮</button><button onclick="document.getElementById('category').value='movie';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/20 text-white px-2 py-1 rounded text-[9px] font-black">🎥</button><button onclick="document.getElementById('category').value='tv';finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="flex-1 bg-blue-600/20 text-white px-2 py-1 rounded text-[9px] font-black">📺</button></div>`}}
+
+        async function processSelection(cat,id,title,searchResult){if(isOffline){finalizeAdd(title,'2026',0,'Custom','--',false);return}document.getElementById('live-results').classList.remove('active');try{let score=0,year='2026',genre='Genre',runtime='--',unreleased=false;if(cat==='vidya'){const r=await fetch(`https://api.rawg.io/api/games/${id}?key=${R}`),d=await r.json();score=d.rating?Math.round(d.rating*20):0;if(d.released){const date=new Date(d.released);year=date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}else{year=searchResult.year||'2026'}genre=d.genres?.[0]?.name||'Game';unreleased=d.tba||!d.released||new Date(d.released)>new Date();if(!unreleased)runtime=await fetchGameRuntime(title)}else{const det=await(await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${T}`)).json();score=Math.round(det.vote_average*10);const releaseDate=det.release_date||det.first_air_date||'';if(releaseDate){const date=new Date(releaseDate);year=date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}else{year='2026'}genre=det.genres?.[0]?.name||cat.toUpperCase();unreleased=det.status!=='Released';runtime=unreleased?'--':(cat==='movie'?(det.runtime?det.runtime+'m':'--'):(det.number_of_seasons?'S'+det.number_of_seasons:'S1')+' E'+(det.number_of_episodes||'--'))}const cover=await fetchCoverArt(id,cat);finalizeAdd(title,year,score,genre,runtime,unreleased,cover,id)}catch(e){finalizeAdd(title,'2026',0,cat==='vidya'?'Game':cat.toUpperCase(),'--',false)}}
+
+        function delItem(id,btn){if(btn.dataset.confirm==='1'){const item=items.find(x=>x.id===id);undoStack={item,timestamp:Date.now()};items=items.filter(z=>z.id!==id);if(settings.haptic&&navigator.vibrate)navigator.vibrate(50);save();showUndo('Item deleted')}else{btn.textContent='SURE?';btn.dataset.confirm='1';btn.classList.add('delete-confirm');setTimeout(()=>{btn.textContent='DEL';btn.dataset.confirm='';btn.classList.remove('delete-confirm')},3000)}}
+
+        // Keep confirmDelete as alias for swipe-delete path
+        async function confirmDelete(id){const item=items.find(x=>x.id===id);undoStack={item,timestamp:Date.now()};items=items.filter(z=>z.id!==id);if(settings.haptic&&navigator.vibrate)navigator.vibrate(50);save();showUndo('Item deleted')}
+
+        function changePriority(idStr, val){const id=Number(idStr);const item=items.find(x=>x.id===id);if(item){item.priority=parseInt(val);save()}}
+
+        function changeStatus(idStr, val){const id=Number(idStr);const item=items.find(x=>x.id===id);if(item){item.status=val;if(val==='done'&&settings.confetti)launchConfetti();save()}}
+
+        async function backfillCoverArt(){
+            if(!settings.coverArt||isOffline)return;
+            const missing=items.filter(i=>!i.cover);
+            if(!missing.length)return;
+            let changed=false;
+            for(const item of missing){
+                try{
+                    let cover=null;
+                    if(item.apiId){
+                        cover=await fetchCoverArt(item.apiId,item.category);
+                    }
+                    // Fallback: search by title
+                    if(!cover&&item.title){
+                        if(item.category==='vidya'){
+                            const r=await fetch(`https://api.rawg.io/api/games?key=${R}&search=${encodeURIComponent(item.title)}&page_size=1`);
+                            const d=await r.json();
+                            if(d.results?.[0]){cover=d.results[0].background_image;if(!item.apiId)item.apiId=d.results[0].id}
+                        }else{
+                            const r=await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${T}&query=${encodeURIComponent(item.title)}&page_size=1`);
+                            const d=await r.json();
+                            if(d.results?.[0]?.poster_path){cover=`https://image.tmdb.org/t/p/w200${d.results[0].poster_path}`;if(!item.apiId)item.apiId=d.results[0].id}
+                        }
+                    }
+                    if(cover){item.cover=cover;changed=true}
+                }catch(e){}
+            }
+            if(changed){localStorage.media_v1=JSON.stringify(items);render()}
+        }
+
+        function undoDelete(){if(undoStack&&Date.now()-undoStack.timestamp<10000){items.push(undoStack.item);undoStack=null;save();document.getElementById('undo-banner').style.display='none'}}
+
+        function showUndo(text){const banner=document.getElementById('undo-banner');document.getElementById('undo-text').textContent=text;banner.style.display='block';setTimeout(()=>banner.style.display='none',5000)}
+
+        function finalizeAdd(title,year,score,genre,runtime,unreleased=false,cover=null,apiId=null){const upcomingChecked=document.getElementById('mark-upcoming').checked;items.push({id:Date.now(),title,category:document.getElementById('category').value,priority:parseInt(document.getElementById('priority').value),status:'to-do',score,genre,release:year,runtime,notes:'',unreleased:unreleased||upcomingChecked,dateAdded:new Date().toISOString(),tags:[],cover,apiId});document.getElementById('title').value='';document.getElementById('mark-upcoming').checked=false;document.getElementById('live-results').classList.remove('active');save()}
+
+        function moveCategory(i,d){if(d===-1&&i>0)[catOrder[i],catOrder[i-1]]=[catOrder[i-1],catOrder[i]];if(d===1&&i<catOrder.length-1)[catOrder[i],catOrder[i+1]]=[catOrder[i+1],catOrder[i]];localStorage.vault_cat_order=JSON.stringify(catOrder);renderSettings();render();pushToCloud()}
+
+        function moveItem(id,d){const idx=items.findIndex(x=>x.id===id),dest=idx+d;if(dest>=0&&dest<items.length)[items[idx],items[dest]]=[items[dest],items[idx]];save()}
+
+        function importBackup(i){const r=new FileReader();r.onload=e=>{items=JSON.parse(e.target.result);save()};r.readAsText(i.files[0])}
+
+        function autoExpand(el,id){el.style.height='inherit';el.style.height=el.scrollHeight+'px';const i=items.find(x=>x.id===id);if(i){i.notes=el.value;localStorage.media_v1=JSON.stringify(items)}}
+
+        function setTheme(theme){document.body.className='';if(theme!=='default-light')document.body.classList.add(theme);localStorage.vault_theme=theme;document.getElementById('theme-picker').classList.add('hidden')}
+
+        async function addTag(id){const tag=await customPrompt('Add tag:');if(tag){const item=items.find(x=>x.id===id);if(item){if(!item.tags)item.tags=[];item.tags.push(tag.toLowerCase().trim());save()}}}
+
+        function removeTag(id,tag){const item=items.find(x=>x.id===id);if(item&&item.tags){item.tags=item.tags.filter(t=>t!==tag);save()}}
+
+        function smartSort(list){return list.sort((a,b)=>{let scoreA=0,scoreB=0;scoreA+=5-a.priority;scoreB+=5-b.priority;const ageA=Date.now()-new Date(a.dateAdded||0);const ageB=Date.now()-new Date(b.dateAdded||0);scoreA+=Math.min(ageA/86400000/30,5);scoreB+=Math.min(ageB/86400000/30,5);const rtA=parseInt(a.runtime)||100;const rtB=parseInt(b.runtime)||100;if(rtA<rtB)scoreA+=2;if(rtB<rtA)scoreB+=2;if(a.status==='in-progress')scoreA+=3;if(b.status==='in-progress')scoreB+=3;return scoreB-scoreA})}
+
+        function launchConfetti(){if(!settings.confetti)return;const canvas=document.getElementById('confetti-canvas');const ctx=canvas.getContext('2d');canvas.width=window.innerWidth;canvas.height=window.innerHeight;const particles=Array.from({length:30},()=>({x:Math.random()*canvas.width,y:-10,vx:(Math.random()-.5)*4,vy:Math.random()*3+2,color:`hsl(${Math.random()*360},70%,60%)`}));function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.15;ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,8,8)});if(particles.some(p=>p.y<canvas.height))requestAnimationFrame(animate);else canvas.style.display='none'}canvas.style.display='block';animate();if(settings.haptic&&navigator.vibrate)navigator.vibrate([50,50,50])}
+
+        // Use data attributes to avoid apostrophe-breaking onclick for tags
+        function removeTagByEl(el){const id=Number(el.dataset.id);const tag=el.dataset.tag;const item=items.find(x=>x.id===id);if(item&&item.tags){item.tags=item.tags.filter(t=>t!==tag);save()}}
+
+        function removeTag(id,tag){const item=items.find(x=>x.id===id);if(item&&item.tags){item.tags=item.tags.filter(t=>t!==tag);save()}}
+
+        let swipeListenersAttached=false;
+        function initSwipe(){
+            if(!settings.swipe)return;
+            if(swipeListenersAttached)return; // prevent duplicates
+            swipeListenersAttached=true;
+            document.addEventListener('touchstart',e=>{const card=e.target.closest('.media-card');if(!card)return;touchElement=card;touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY},{passive:true});
+            document.addEventListener('touchmove',e=>{if(!touchElement)return;const dx=e.touches[0].clientX-touchStartX;const dy=e.touches[0].clientY-touchStartY;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>20){e.preventDefault();touchElement.style.transform=`translateX(${dx}px)`;if(dx>80){touchElement.querySelector('.swipe-right')?.remove();const action=document.createElement('div');action.className='swipe-actions swipe-right';action.textContent='✓ Done';touchElement.appendChild(action)}else if(dx<-80){touchElement.querySelector('.swipe-left')?.remove();const action=document.createElement('div');action.className='swipe-actions swipe-left';action.textContent='✗ Delete';touchElement.appendChild(action)}else{touchElement.querySelectorAll('.swipe-actions').forEach(a=>a.remove())}}},{passive:false});
+            document.addEventListener('touchend',async e=>{if(!touchElement)return;if(!settings.swipe){touchElement.style.transform='';touchElement.querySelectorAll('.swipe-actions').forEach(a=>a.remove());touchElement=null;return}const dx=e.changedTouches[0].clientX-touchStartX;if(dx>120){const id=parseInt(touchElement.dataset.id);const item=items.find(x=>x.id===id);if(item){item.status='done';if(settings.confetti)launchConfetti();save()}}else if(dx<-120){const id=parseInt(touchElement.dataset.id);if(await customConfirm('Delete this item?')){const item=items.find(x=>x.id===id);undoStack={item,timestamp:Date.now()};items=items.filter(z=>z.id!==id);if(settings.haptic&&navigator.vibrate)navigator.vibrate(50);save();showUndo('Item deleted')}}touchElement.style.transform='';touchElement.querySelectorAll('.swipe-actions').forEach(a=>a.remove());touchElement=null},{passive:false});
+        }
+
+        function renderSettings(){const l=document.getElementById('cat-order-list'),labels={vidya:'Games',movie:'Cinema',tv:'Series'};l.innerHTML='';catOrder.forEach((c,i)=>{l.innerHTML+=`<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[c]}</span><div class="flex gap-2"><button onclick="moveCategory(${i},-1)">▲</button><button onclick="moveCategory(${i},1)">▼</button></div></div>`});Object.keys(settings).forEach(k=>{const btn=document.getElementById(`toggle-${k}`);if(btn)btn.textContent=`${k.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}: ${settings[k]?'ON':'OFF'}`})}
+
+        function toggleStatusFilter(status){if(status==='all'){statusFilter=['to-do','in-progress','done']}else{const idx=statusFilter.indexOf(status);if(idx>-1){statusFilter.splice(idx,1);if(statusFilter.length===0)statusFilter=['to-do','in-progress','done']}else{statusFilter.push(status)}}render()}
+
+        function showStats(){history.pushState({modal:'stats-modal'},'');const modal=document.getElementById('stats-modal'),content=document.getElementById('stats-content');const byCategory={vidya:items.filter(i=>i.category==='vidya'),movie:items.filter(i=>i.category==='movie'),tv:items.filter(i=>i.category==='tv')};const totals={vidya:{total:byCategory.vidya.length,done:byCategory.vidya.filter(i=>i.status==='done').length,hours:byCategory.vidya.reduce((acc,i)=>acc+(parseInt(i.runtime)||0),0)},movie:{total:byCategory.movie.length,done:byCategory.movie.filter(i=>i.status==='done').length,hours:Math.round(byCategory.movie.reduce((acc,i)=>acc+(parseInt(i.runtime)||0),0)/60)},tv:{total:byCategory.tv.length,done:byCategory.tv.filter(i=>i.status==='done').length,episodes:byCategory.tv.reduce((acc,i)=>{const match=(i.runtime||'').match(/E(\d+)/);return acc+(match?parseInt(match[1]):0)},0)}};const genreCounts={};items.forEach(i=>{genreCounts[i.genre]=(genreCounts[i.genre]||0)+1});const topGenres=Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);const recentCompleted=items.filter(i=>i.status==='done').sort((a,b)=>b.id-a.id).slice(0,10);const timeline={};items.filter(i=>i.status==='done'&&i.dateAdded).forEach(i=>{const month=new Date(i.dateAdded).toLocaleDateString('en-US',{month:'short',year:'numeric'});timeline[month]=(timeline[month]||0)+1});let html=`<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"><div class="bg-black/40 p-4 rounded-xl border border-amber-500/30"><div class="text-amber-400 text-3xl mb-2">🎮</div><div class="text-white font-black text-2xl">${totals.vidya.total}</div><div class="text-white/80 text-[10px] uppercase">Games</div><div class="text-green-400 text-sm font-bold mt-2">${totals.vidya.done} Done</div><div class="text-white/90 text-xs">${totals.vidya.hours}h played</div></div><div class="bg-black/40 p-4 rounded-xl border border-red-500/30"><div class="text-red-400 text-3xl mb-2">🎥</div><div class="text-white font-black text-2xl">${totals.movie.total}</div><div class="text-white/80 text-[10px] uppercase">Movies</div><div class="text-green-400 text-sm font-bold mt-2">${totals.movie.done} Done</div><div class="text-white/90 text-xs">${totals.movie.hours}h watched</div></div><div class="bg-black/40 p-4 rounded-xl border border-green-500/30"><div class="text-green-400 text-3xl mb-2">📺</div><div class="text-white font-black text-2xl">${totals.tv.total}</div><div class="text-white/80 text-[10px] uppercase">Shows</div><div class="text-green-400 text-sm font-bold mt-2">${totals.tv.done} Done</div><div class="text-white/90 text-xs">${totals.tv.episodes} episodes</div></div></div>`;if(Object.keys(timeline).length>0){html+=`<div class="mb-6"><h3 class="text-white font-black uppercase text-base mb-3">Timeline</h3><div class="space-y-1">`;Object.entries(timeline).slice(-12).forEach(([month,count])=>{const pct=Math.round(count/Math.max(...Object.values(timeline))*100);html+=`<div class="flex items-center gap-3"><div class="text-white/70 text-xs w-24">${month}</div><div class="flex-1 bg-black/40 rounded-full h-5 overflow-hidden border border-white/10"><div class="bg-purple-600 h-full flex items-center justify-end pr-2" style="width:${pct}%"><span class="text-white text-[10px] font-black">${count}</span></div></div></div>`});html+=`</div></div>`}html+=`<div class="mb-6"><h3 class="text-white font-black uppercase text-base mb-3">Top Genres</h3><div class="space-y-2">`;topGenres.forEach(([genre,count])=>{const pct=Math.round(count/items.length*100);html+=`<div class="flex items-center gap-3"><div class="text-white/90 text-xs w-20 flex-shrink-0">${genre}</div><div class="flex-1 bg-black/40 rounded-full h-6 overflow-hidden border border-white/10"><div class="bg-blue-600 h-full flex items-center justify-end pr-2" style="width:${pct}%"><span class="text-white text-[10px] font-black">${count}</span></div></div></div>`});html+=`</div></div>`;html+=`<div class="mb-6"><h3 class="text-white font-black uppercase text-base mb-3">Completion Rate</h3><div class="grid grid-cols-3 gap-3">`;['vidya','movie','tv'].forEach(cat=>{const total=byCategory[cat].length,done=byCategory[cat].filter(i=>i.status==='done').length,pct=total?Math.round(done/total*100):0;const labels={vidya:'Games',movie:'Movies',tv:'Shows'};html+=`<div class="bg-black/40 p-3 rounded-xl text-center border border-white/10"><div class="text-white font-black text-2xl mb-1">${pct}%</div><div class="text-white/80 text-[9px] uppercase">${labels[cat]}</div><div class="text-white/90 text-[10px]">${done}/${total}</div></div>`});html+=`</div></div>`;if(recentCompleted.length>0){html+=`<div><h3 class="text-white font-black uppercase text-base mb-3">Recently Completed</h3><div class="space-y-2">`;recentCompleted.forEach(i=>{const icons={vidya:'🎮',movie:'🎥',tv:'📺'};html+=`<div class="bg-black/40 p-3 rounded-xl border border-white/10 flex items-center gap-3"><div class="text-xl flex-shrink-0">${icons[i.category]}</div><div class="flex-1 min-w-0"><div class="text-white font-bold text-xs truncate">${i.title}</div><div class="text-white/70 text-[9px] uppercase">${i.genre}</div></div><div class="text-green-400 font-mono text-base flex-shrink-0">${i.score}</div></div>`});html+=`</div></div>`}content.innerHTML=html;modal.style.display='flex'}
+
+        function render(){
+            ['all','to-do','in-progress','done'].forEach(s=>{const b=document.getElementById(`filter-${s==='to-do'?'todo':s==='in-progress'?'progress':s}`);if(b){const isActive=s==='all'?statusFilter.length===3:statusFilter.includes(s);if(isActive){b.style.background='rgba(59,130,246,0.9)';b.style.borderColor='#3b82f6';b.style.color='#fff'}else{b.style.background='var(--filter-inactive-bg)';b.style.borderColor='var(--filter-inactive)';b.style.color='var(--filter-inactive-text)'}}});
+            const c=document.getElementById('tables-container'),s=localStorage.vault_sort||'priority-added',f=document.getElementById('global-search').value.toLowerCase(),cats={vidya:'🎮 GAMES',movie:'🎥 CINEMA',tv:'📺 SERIES'},pMap={1:'IMM',2:'HI',3:'MED',4:'LOW'};const sortSelect=document.getElementById('sort-order');if(sortSelect)sortSelect.value=s;const filters=parseSmartSearch(f);c.innerHTML='';catOrder.forEach(k=>{let list=items.filter(i=>{if(i.category!==k)return false;if(!statusFilter.includes(i.status))return false;if(filters.text&&!i.title.toLowerCase().includes(filters.text))return false;if(filters.genre&&i.genre.toLowerCase()!==filters.genre)return false;if(filters.year&&new Date(i.release).getFullYear()!==filters.year)return false;if(filters.scoreMin!==null&&i.score<filters.scoreMin)return false;if(filters.scoreMax!==null&&i.score>filters.scoreMax)return false;if(filters.status&&i.status!==filters.status)return false;return true});
+            // Respect statusFilter for done items — only hide done if not in filter; hide non-done by hiddenPriorities
+            list=list.filter(i=>{if(i.status==='done')return statusFilter.includes('done');return!hiddenPriorities[k].includes(i.priority)});
+            if(s==='smart')list=smartSort(list);else if(s!=='manual'&&!s.startsWith('priority-manual'))list.sort((a,b)=>{if(s==='priority'||s.startsWith('priority-'))if(a.priority!==b.priority)return a.priority-b.priority;if(s==='recent')return b.id-a.id;if(s==='rating'||s==='priority-rating')return b.score-a.score;if(s==='release'||s==='priority-release'){const dateA=new Date(a.release);const dateB=new Date(b.release);return dateB-dateA}if(s==='added'||s==='priority-added')return new Date(a.dateAdded||0)-new Date(b.dateAdded||0);if(s==='priority-genre')return(a.genre||'').localeCompare(b.genre||'');return 0});let pToggles=statusFilter.includes('done')&&statusFilter.length===1?'':'<div class="flex gap-2 ml-4 relative z-1" onclick="event.stopPropagation()">';if(!(statusFilter.includes('done')&&statusFilter.length===1)){[1,2,3,4].forEach(p=>{const colors={1:'bg-red-600',2:'bg-orange-600',3:'bg-blue-600',4:'bg-slate-600'};pToggles+=`<div onclick="togglePriority('${k}',${p})" class="pri-dot ${colors[p]} ${hiddenPriorities[k].includes(p)?'opacity-20 grayscale':'opacity-100'}"></div>`});pToggles+='</div>'}if(list.length===0&&!f)return;let section=`<section><div onclick="toggleCategory('${k}')" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[k]} ${collapsed[k]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[k]?'none':'block'}" class="space-y-2">`;list.forEach(i=>{const bg=i.status==='done'?'priority-bg-done':`priority-bg-${i.priority}`;const isUnreleased=i.unreleased||false;const addedDate=i.dateAdded?new Date(i.dateAdded).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'-';const isNewRelease=!isUnreleased&&new Date(i.release).getFullYear()>=2026&&i.score===0;const scoreDisplay=isUnreleased?'TBA':isNewRelease?'TBD':i.score===0?'-':i.score;const compactClass=settings.compact?'compact':'';section+=`<div class="media-card ${compactClass} card-${k} ${bg} p-3" data-id="${i.id}">${(s==='manual'||s==='priority-manual')?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${k}</div><div class="flex justify-between items-start relative z-10"><div class="flex gap-3 flex-1">${settings.coverArt&&i.cover?`<img src="${i.cover}" class="cover-art" loading="lazy">`:''}<div class="flex-1"><h3 class="font-bold text-white uppercase text-sm leading-tight" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">${highlightText(i.title,filters.text)}${isUnreleased?' <span class="text-[7px] bg-amber-600 px-1.5 py-0.5 rounded ml-1">UPCOMING</span>':''}</h3><div class="text-[9px] text-white uppercase tracking-wider" style="text-shadow:1px 1px 2px rgba(0,0,0,0.3)">${i.genre} • ${isUnreleased?'Expected: ':''} ${i.release} ${isUnreleased?'':'• '+i.runtime}</div><div class="text-[9px] text-white/80 uppercase mt-1 compact-hide" style="text-shadow:1px 1px 2px rgba(0,0,0,0.3)">Added ${addedDate}</div>${settings.tags&&i.tags?.length?`<div class="mt-1">${i.tags.map(t=>`<span class="tag-chip" data-id="${i.id}" data-tag="${t.replace(/"/g,'&quot;')}" onclick="removeTagByEl(this)">${t} ×</span>`).join('')}</div>`:''}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title+' official trailer')}','_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none" style="text-shadow:2px 2px 4px rgba(0,0,0,0.5)">${scoreDisplay}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10 flex-wrap"><select onchange="changePriority('${i.id}',this.value)" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v,t])=>`<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select>${settings.notes?`<span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span>`:''}${settings.tags?`<span class="notes-trigger" onclick="addTag(${i.id})">Tag +</span>`:''}<select onchange="changeStatus('${i.id}',this.value)" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button id="del-${i.id}" onclick="delItem(${i.id},this)" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10">DEL</button></div>${settings.notes?`<textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this,${i.id})" onblur="save()">${i.notes||''}</textarea>`:''}</div>`});c.innerHTML+=section+'</div></section>'});sessionStorage.vault_scroll=window.scrollY}
+
+        document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('settings-menu').style.display='none';document.getElementById('random-modal').style.display='none';document.getElementById('stats-modal').style.display='none';document.getElementById('custom-modal').style.display='none';document.getElementById('live-results').classList.remove('active')}});
+
+        document.addEventListener('click',e=>{const dropdown=document.getElementById('live-results');if(dropdown.classList.contains('active')&&!dropdown.contains(e.target)&&!document.getElementById('title').contains(e.target))dropdown.classList.remove('active')});
+
+        let pullY=0,pulling=false;
+        document.addEventListener('touchstart',e=>{if(window.scrollY===0)pullY=e.touches[0].clientY},{passive:true});
+        document.addEventListener('touchmove',e=>{if(window.scrollY===0&&e.touches[0].clientY>pullY+50){pulling=true}},{passive:true});
+        document.addEventListener('touchend',()=>{if(pulling){pulling=false;pullFromCloud()}},{passive:true});
+
+        window.addEventListener('scroll',()=>sessionStorage.vault_scroll=window.scrollY,{passive:true});
+        window.addEventListener('load',()=>{if(sessionStorage.vault_scroll)window.scrollTo(0,parseInt(sessionStorage.vault_scroll))});
+
+        // Back button: close any open modal instead of navigating away
+        window.addEventListener('popstate',()=>{
+            ['settings-menu','random-modal','stats-modal','custom-modal'].forEach(id=>{
+                const el=document.getElementById(id);
+                if(el&&el.style.display==='flex')el.style.display='none';
+            });
+            document.getElementById('live-results').classList.remove('active');
+        });
+        // Push history state whenever a modal opens so back button can close it
+        document.querySelector('[onclick*="settings-menu"]').addEventListener('click',()=>history.pushState({modal:'settings-menu'},''));
+
+        initSwipe();
+        renderSettings();
+        
+        // Show instant loading feedback
+        const loading=document.createElement('div');
+        loading.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em';
+        loading.textContent='Loading VAULT...';
+        document.body.appendChild(loading);
+        
+        // Quick first render without blocking
+        requestAnimationFrame(()=>{
+            render();
+            loading.remove();
+            
+            // Defer network operations much later
+            setTimeout(()=>{
+                if(navigator.onLine)initCloud();
+            },5000);
+            
+            // Defer cover art backfill to idle time only
+            if('requestIdleCallback' in window){
+                requestIdleCallback(()=>{
+                    if(navigator.onLine)backfillCoverArt();
+                },{timeout:30000});
+            }
+        });
+
+        } catch(err) {
+            document.body.innerHTML = `<div style="padding:2rem;text-align:center;font-family:sans-serif"><h1 style="color:#ef4444;margin-bottom:1rem">⚠️ VAULT Error</h1><p style="margin-bottom:1rem">Error: ${err.message}</p><p style="margin-bottom:2rem;color:#64748b">Your localStorage might be corrupted. Click below to reset:</p><button onclick="localStorage.clear();location.reload()" style="background:#ef4444;color:white;padding:1rem 2rem;border:none;border-radius:0.5rem;font-weight:bold;cursor:pointer;font-size:16px">RESET & RELOAD</button><p style="margin-top:1rem;font-size:12px;color:#64748b">This will clear all local data but won't affect cloud backups.</p></div>`;
+        }
+    </script>
+</body>
+</html>
